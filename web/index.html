@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racing Companion - Track Your Racing Vehicle</title>
+    <style>
+        :root {
+            --primary-blue: #1f6aa5;
+            --secondary-blue: #3a7ebf;
+            --light-gray: #f0f0f0;
+            --dark-gray: #2d2d2d;
+            --mid-gray: #565b5e;
+            --accent-green: #28a745
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .logo-icon {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 2rem;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: var(--mid-gray);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            color: var(--primary-blue);
+        }
+
+        .hero {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 8rem 5% 5rem;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background-image: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: white;
+            color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--light-gray);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .app-preview {
+            margin-top: 3rem;
+            position: relative;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .app-preview img {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        section {
+            padding: 5rem 5%;
+        }
+
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            color: var(--mid-gray);
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features {
+            background-color: white;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card {
+            position: relative;
+            /* Add this if not already present */
+            overflow: hidden;
+            /* Add this to contain the banner */
+        }
+
+        .coming-soon-banner {
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background-color: var(--secondary-blue);
+            color: white;
+            padding: 5px 30px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transform: rotate(45deg);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        .from-version-banner {
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background-color: var(--accent-green);
+            color: white;
+            padding: 5px 30px;
+            font-size: 0.5rem;
+            font-weight: bold;
+            transform: rotate(45deg);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        .how-it-works {
+            background-color: var(--light-gray);
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .step:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-image {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .step-image img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-number {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        .step-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+        }
+
+        .author-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 1rem;
+        }
+
+        .author-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .author-info h4 {
+            font-weight: 600;
+        }
+
+        .author-info p {
+            color: var(--mid-gray);
+            font-size: 0.9rem;
+        }
+
+        .quote-icon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            color: var(--primary-blue);
+            opacity: 0.2;
+        }
+
+        .about-author {
+            background-color: white;
+            text-align: center;
+        }
+
+        .author-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .author-profile {
+            margin-bottom: 2rem;
+        }
+
+        .author-profile img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1.5rem;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .author-profile h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-blue);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary-blue);
+            color: white;
+            border-radius: 50%;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            transform: translateY(-3px);
+            background-color: var(--secondary-blue);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact {
+            background-color: var(--dark-gray);
+            color: white;
+            text-align: center;
+        }
+
+        .contact-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .contact h2 {
+            color: white;
+        }
+
+        .contact .btn-primary {
+            margin-top: 2rem;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+        }
+
+        .contact .btn-primary:hover {
+            background-color: var(--secondary-blue);
+        }
+
+        footer {
+            background-color: var(--dark-gray);
+            color: white;
+            padding: 1.5rem 5%;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .step,
+            .step:nth-child(even) {
+                flex-direction: column;
+            }
+
+            .app-preview {
+                margin-top: 2rem;
+            }
+
+            .nav-container {
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            .logo {
+                margin-bottom: 1rem;
+            }
+
+            nav ul li {
+                margin-left: 1rem;
+                margin-right: 1rem;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-flag-checkered"></i>
+                </div>
+                Racing Companion
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#about-author">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Track Your Racing Vehicle Like a Pro</h1>
+            <p>Racing Companion helps racing enthusiasts manage maintenance work and track days for their racing
+                vehicles with an intuitive and powerful interface.</p>
+            <div class="hero-buttons">
+                <a href="#" class="btn btn-primary">Download Now</a>
+                <a href="#features" class="btn btn-secondary">Learn More</a>
+            </div>
+            <div class="app-preview">
+                <img src="/api/placeholder/800/450" alt="Racing Companion App Preview">
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="section-container">
+            <div class="section-title">
+                <h2>Powerful Features</h2>
+                <p>Racing Companion comes packed with everything you need to keep your racing vehicle in top condition.
+                </p>
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="from-version-banner">From version 1.0.0</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3>Maintenance Tracking</h3>
+                    <p>Log all maintenance work with dates, parts, costs, and notes to keep your vehicle in perfect
+                        condition.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="from-version-banner">From version 1.0.0</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>Track Day Management</h3>
+                    <p>Record track days with lap times, weather conditions, and performance notes for future reference.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="coming-soon-banner">Coming Soon</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Performance Analytics</h3>
+                    <p>Analyze your performance over time with visual graphs and detailed statistics.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="coming-soon-banner">Coming Soon</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>Maintenance Reminders</h3>
+                    <p>Get timely notifications for upcoming maintenance based on mileage or time intervals.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="coming-soon-banner">Coming Soon</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-file-export"></i>
+                    </div>
+                    <h3>Data Export</h3>
+                    <p>Export your data in various formats for backup or further analysis in other tools.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="from-version-banner">From version 1.0.0</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Multi-Vehicle Support</h3>
+                    <p>Manage multiple racing vehicles from a single application with ease.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="how-it-works">
+        <div class="section-container">
+            <div class="section-title">
+                <h2>How It Works</h2>
+                <p>Racing Companion makes it simple to keep track of everything related to your racing vehicle.</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-content">
+                        <div class="step-number">01</div>
+                        <h3>Set Up Your Vehicle Profile</h3>
+                        <p>Create a detailed profile of your racing vehicle including make, model, year, and specific
+                            modifications to keep all information organized.</p>
+                    </div>
+                    <div class="step-image">
+                        <img src="web-pics/add-vehicle.png" alt="Vehicle Profile Setup">
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-content">
+                        <div class="step-number">02</div>
+                        <h3>Log Maintenance and Repairs</h3>
+                        <p>Keep a detailed record of all maintenance work performed, including dates, costs, and notes
+                            to ensure your vehicle is always in top condition.</p>
+                    </div>
+                    <div class="step-image">
+                        <img src="web-pics/maintenance-combined.png" alt="Maintenance Logging Main">
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-content">
+                        <div class="step-number">03</div>
+                        <h3>Record Track Days</h3>
+                        <p>Document your track days with detailed information about lap times, weather conditions, tire
+                            wear, and more to track your progress over time.</p>
+                    </div>
+                    <div class="step-image">
+                        <img src="web-pics/add-sessions.png" alt="Track Day Recording">
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-content">
+                        <div class="step-number">04</div>
+                        <h3>Analyze Performance</h3>
+                        <p>View comprehensive reports and analytics to identify trends, improvements, and areas that
+                            need attention to enhance your racing performance.</p>
+                    </div>
+                    <div class="step-image">
+                        <img src="/api/placeholder/500/300" alt="Performance Analysis">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about-author" class="about-author">
+        <div class="section-container">
+            <div class="section-title">
+                <h2>About the Author</h2>
+                <p>The person behind Racing Companion</p>
+            </div>
+            <div class="author-container">
+                <div class="author-profile">
+                    <img src="/api/placeholder/150/150" alt="Author Profile">
+                    <h3>Your Name</h3>
+                    <p>Racing enthusiast and software developer</p>
+                    <p>I created Racing Companion to solve my own problems with tracking maintenance and performance
+                        data for my track car. What started as a personal project has grown into a tool that helps
+                        racing enthusiasts around the world.</p>
+                </div>
+                <div class="social-links">
+                    <a href="#" class="social-link">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="section-container">
+            <div class="contact-container">
+                <div class="section-title">
+                    <h2>Get In Touch</h2>
+                    <p>Have questions, suggestions, or found a bug? Check out the GitHub repository or reach out
+                        directly.</p>
+                </div>
+                <a href="https://github.com/yourusername/racing-companion" class="btn btn-primary">
+                    <i class="fab fa-github"></i> View on GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Racing Companion. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Simple header animation on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            } else {
+                header.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            }
+        });
+    </script>
+</body>
+
+</html>
