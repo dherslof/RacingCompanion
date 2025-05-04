@@ -11,9 +11,9 @@ The application has multi-vehicle support for following key features:
 * Track Day Management 
 
 ## Planned features 
-[ ] Maintenance Reminders
-[ ] Performance Analytics
-[ ] Data Export
+- [ ] Maintenance Reminders
+- [ ] Performance Analytics
+- [ ] Data Export
 
 # Installation
 No specific installation is required if the dependencies are fulfilled. Just clone repositiory and start using! 
