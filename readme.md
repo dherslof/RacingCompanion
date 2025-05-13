@@ -14,6 +14,11 @@ The application has multi-vehicle support for following key features:
 - [ ] Maintenance Reminders
 - [ ] Performance Analytics
 - [ ] Data Export
+- [ ] Notes & Checklists
+
+## Known issues
+Below is a list of known issues. A known issue can be a improvement of existing functionality, small tweaks or plain bugs.
+- [ ] Make the add session format scrollable, in order to handle different screen sizes. 
 
 # Installation
 No specific installation is required if the dependencies are fulfilled. Just clone repositiory and start using! 
