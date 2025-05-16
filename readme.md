@@ -18,7 +18,7 @@ The application has multi-vehicle support for following key features:
 
 ## Known issues
 Below is a list of known issues. A known issue can be a improvement of existing functionality, small tweaks or plain bugs.
-- [ ] Make the add session format scrollable, in order to handle different screen sizes. 
+- [X] Make the add session format scrollable, in order to handle different screen sizes. 
 
 # Installation
 No specific installation is required if the dependencies are fulfilled. Just clone repositiory and start using! 
@@ -74,3 +74,4 @@ For the best user experiance, start by adding your vehicle!
 ## Support 
 ### Data Storage
 Currently stored in a plain **.json** file. It's simple to read and can be used by other tools. This will be updated in the future. 
+
