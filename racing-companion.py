@@ -1675,22 +1675,35 @@ class RacingDiaryApp(ctk.CTk):
     def add_session_form(self, track_day_idx):
         """Open form to add a session."""
         self.session_form_window = ctk.CTkToplevel(self)
-        self.session_form_window.title("Add New Session")
-        self.session_form_window.geometry("550x950")  # Further increased size
+        self.session_form_window.title("Add New Session form")
+        self.session_form_window.geometry("550x650")
 
-        track_day = self.track_days[track_day_idx]  # Get the track day data
-        track_day_vehicle = track_day.get("vehicle", "N/A")  # Get the vehicle for the track day
+        track_day = self.track_days[track_day_idx]
+        track_day_vehicle = track_day.get("vehicle", "N/A")
 
         # Center window relative to main window
         self.session_form_window.transient(self)
         self.session_form_window.update_idletasks()
 
-        # Add padding around the form
-        form_frame = ctk.CTkFrame(self.session_form_window)
-        form_frame.pack(fill="both", expand=True, padx=30, pady=30)
+        # Create a main container frame
+        main_container = ctk.CTkFrame(self.session_form_window)
+        main_container.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # Add spacing between form items
-        field_pady = 10  # Increased spacing
+        # Create a canvas for scrolling
+        canvas = ctk.CTkCanvas(main_container, highlightthickness=0)
+        scrollbar = ctk.CTkScrollbar(main_container, orientation="vertical", command=canvas.yview)
+
+        # Configure the canvas
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # Create a frame inside the canvas to hold the form content
+        form_frame = ctk.CTkFrame(canvas, fg_color=main_container.cget("fg_color"))
+        canvas_frame = canvas.create_window((0, 0), window=form_frame, anchor="nw")
+
+        # Field padding
+        field_pady = 10
 
         # Title for the form
         title_label = ctk.CTkLabel(form_frame, text="Add Track Session", font=("Arial", 18, "bold"))
@@ -1705,16 +1718,15 @@ class RacingDiaryApp(ctk.CTk):
             fg_color="#F5F7FA",
             border_color="#D0D3D4",
             text_color="#2C3E50")
-        self.session_number_entry.insert(0, str(len(self.track_days[track_day_idx]["sessions"]) + 1))  # Auto fill session number
-        self.session_number_entry.pack(fill="x", pady=(0, field_pady))
+        self.session_number_entry.insert(0, str(len(self.track_days[track_day_idx]["sessions"]) + 1))
+        self.session_number_entry.pack(fill="x", padx=30, pady=(0, field_pady))
 
-        ctk.CTkLabel(form_frame, text="Number of Laps:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
+        ctk.CTkLabel(form_frame, text="Number of Laps:", anchor="w", font=("Arial", 12)).pack(fill="x", padx=30, pady=(field_pady, 2))
         self.laps_entry = ctk.CTkEntry(form_frame, width=450, height=35)
-        self.laps_entry.pack(fill="x", pady=(0, field_pady))
+        self.laps_entry.pack(fill="x", padx=30, pady=(0, field_pady))
 
         if track_day_vehicle != "N/A":
-            # Display the vehicle for the track day
-            ctk.CTkLabel(form_frame, text="Vehicle:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
+            ctk.CTkLabel(form_frame, text="Vehicle:", anchor="w", font=("Arial", 12)).pack(fill="x", padx=30, pady=(field_pady, 2))
             vehicle_label = ctk.CTkLabel(
                 form_frame,
                 text=track_day_vehicle,
@@ -1722,11 +1734,10 @@ class RacingDiaryApp(ctk.CTk):
                 fg_color="#F5F7FA",
                 text_color="#2C3E50"
             )
-            vehicle_label.pack(fill="x", pady=(0, field_pady))
+            vehicle_label.pack(fill="x", padx=30, pady=(0, field_pady))
         else:
-            # Vehicle selection dropdown, probably never used but anyway
-            ctk.CTkLabel(form_frame, text="Vehicle:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
-            self.vehicle_var = StringVar(value=self.vehicles[0])  # Default to first vehicle
+            ctk.CTkLabel(form_frame, text="Vehicle:", anchor="w", font=("Arial", 12)).pack(fill="x", padx=30, pady=(field_pady, 2))
+            self.vehicle_var = StringVar(value=self.vehicles[0])
             self.vehicle_dropdown = ctk.CTkOptionMenu(
                 form_frame,
                 values=self.vehicles,
@@ -1740,13 +1751,11 @@ class RacingDiaryApp(ctk.CTk):
                 dropdown_fg_color="#F5F7FA",
                 text_color="#2C3E50"
             )
-            self.vehicle_dropdown.pack(fill="x", pady=(0, field_pady))
-
-
+            self.vehicle_dropdown.pack(fill="x", padx=30, pady=(0, field_pady))
 
         # Weather dropdown
-        ctk.CTkLabel(form_frame, text="Weather:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
-        self.weather_var = StringVar(value=self.weather_options[0])  # Default to first option
+        ctk.CTkLabel(form_frame, text="Weather:", anchor="w", font=("Arial", 12)).pack(fill="x", padx=30, pady=(field_pady, 2))
+        self.weather_var = StringVar(value=self.weather_options[0])
         self.weather_dropdown = ctk.CTkOptionMenu(
             form_frame,
             values=self.weather_options,
@@ -1760,9 +1769,9 @@ class RacingDiaryApp(ctk.CTk):
             dropdown_fg_color="#F5F7FA",
             text_color="#2C3E50"
         )
-        self.weather_dropdown.pack(fill="x", pady=(0, field_pady))
+        self.weather_dropdown.pack(fill="x", padx=30, pady=(0, field_pady))
 
-        ctk.CTkLabel(form_frame, text="Tire Type:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
+        ctk.CTkLabel(form_frame, text="Tire Type:", anchor="w", font=("Arial", 12)).pack(fill="x", padx=30, pady=(field_pady, 2))
         self.tire_type_entry = ctk.CTkEntry(
             form_frame,
             width=450,
@@ -1770,9 +1779,9 @@ class RacingDiaryApp(ctk.CTk):
             fg_color="#F5F7FA",
             border_color="#D0D3D4",
             text_color="#2C3E50")
-        self.tire_type_entry.pack(fill="x", pady=(0, field_pady))
+        self.tire_type_entry.pack(fill="x", padx=30, pady=(0, field_pady))
 
-        ctk.CTkLabel(form_frame, text="Tire Status:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
+        ctk.CTkLabel(form_frame, text="Tire Status:", anchor="w", font=("Arial", 12)).pack(fill="x", padx=30, pady=(field_pady, 2))
         self.tire_status_entry = ctk.CTkEntry(
             form_frame,
             width=450,
@@ -1780,9 +1789,9 @@ class RacingDiaryApp(ctk.CTk):
             fg_color="#F5F7FA",
             border_color="#D0D3D4",
             text_color="#2C3E50")
-        self.tire_status_entry.pack(fill="x", pady=(0, field_pady))
+        self.tire_status_entry.pack(fill="x", padx=30, pady=(0, field_pady))
 
-        ctk.CTkLabel(form_frame, text="Best Lap Time:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
+        ctk.CTkLabel(form_frame, text="Best Lap Time:", anchor="w", font=("Arial", 12)).pack(fill="x", padx=30, pady=(field_pady, 2))
         self.best_lap_time_entry = ctk.CTkEntry(
             form_frame,
             width=450,
@@ -1790,79 +1799,79 @@ class RacingDiaryApp(ctk.CTk):
             fg_color="#F5F7FA",
             border_color="#D0D3D4",
             text_color="#2C3E50")
-        self.best_lap_time_entry.pack(fill="x", pady=(0, field_pady))
+        self.best_lap_time_entry.pack(fill="x", padx=30, pady=(0, field_pady))
 
-        ctk.CTkLabel(form_frame, text="Comments:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
+        ctk.CTkLabel(form_frame, text="Comments:", anchor="w", font=("Arial", 12)).pack(fill="x", padx=30, pady=(field_pady, 2))
         self.comments_entry = ctk.CTkEntry(
             form_frame,
             width=450,
             height=120,
             fg_color="#F5F7FA",
             border_color="#D0D3D4",
-            text_color="#2C3E50")  # Even taller for comments
-        self.comments_entry.pack(fill="x", pady=(0, field_pady))
+            text_color="#2C3E50")
+        self.comments_entry.pack(fill="x", padx=30, pady=(0, field_pady))
 
         # Button frame at the bottom with more space above
         button_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
-        button_frame.pack(fill="x", pady=(30, 0))
+        button_frame.pack(fill="x", padx=30, pady=(30, 10))
 
-        # Cancel button - using red color
+        # Cancel button
         cancel_button = ctk.CTkButton(
             button_frame,
             text="Cancel",
             command=self.session_form_window.destroy,
-            fg_color="#E74C3C",  # Red color
-            hover_color="#C0392B",  # Darker red on hover
+            fg_color="#E74C3C",
+            hover_color="#C0392B",
             text_color="white",
             width=150,
             height=40
         )
         cancel_button.pack(side="left", padx=10)
 
-        # Save session button - using green color
+        # Save session button
         save_button = ctk.CTkButton(
             button_frame,
             text="Save Session",
             command=lambda: self.save_session(track_day_idx),
-            fg_color="#2ECC71",  # Green color
-            hover_color="#27AE60",  # Darker green on hover
+            fg_color="#2ECC71",
+            hover_color="#27AE60",
             text_color="white",
             width=150,
             height=40
         )
         save_button.pack(side="right", padx=10)
 
+        # Update the scrollregion to encompass the entire form
+        def configure_scroll_region(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            # Ensure the canvas width matches the form_frame width
+            canvas.itemconfig(canvas_frame, width=event.width)
+
+        # Bind the form_frame to update the scroll region when it changes size
+        form_frame.bind("<Configure>", configure_scroll_region)
+
+        # Bind mousewheel events for scrolling
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)  # Windows and MacOS
+        canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))  # Linux
+        canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))  # Linux
+
         # Make form window modal to prevent interactions with main window
         self.session_form_window.grab_set()
         self.session_form_window.focus_set()
 
-    def save_session(self, track_day_idx):
-        """Save new session to the track day."""
-        track_day = self.track_days[track_day_idx]
+        # Clean up the bindings when the window is closed
+        def on_closing():
+            canvas.unbind_all("<MouseWheel>")
+            canvas.unbind_all("<Button-4>")
+            canvas.unbind_all("<Button-5>")
+            self.session_form_window.destroy()
 
-        # Create a new session
-        new_session = {
-            "session_number": self.session_number_entry.get(),
-            "laps": self.laps_entry.get(),
-            "vehicle": track_day.get("vehicle"),  # Get vehicle from dropdown
-            "weather": self.weather_var.get(),  # Get weather from dropdown
-            "tire_type": self.tire_type_entry.get(),
-            "tire_status": self.tire_status_entry.get(),
-            "best_lap_time": self.best_lap_time_entry.get(),
-            "comments": self.comments_entry.get()
-        }
+        self.session_form_window.protocol("WM_DELETE_WINDOW", on_closing)
 
-        track_day["sessions"].append(new_session)
-        save_data(self.track_days)
 
-        self.session_form_window.destroy()
-
-        # Refresh the sessions if they're currently visible
-        content_data = self.session_content_frames.get(track_day_idx)
-        if content_data and content_data["visible"]:
-            # Refresh the content by toggling twice
-            self.toggle_sessions_inline(track_day_idx, None)  # Hide
-            self.toggle_sessions_inline(track_day_idx, None)  # Show again
 
     def create_new_track_day(self):
         """Popup for entering new track day details."""
@@ -1894,6 +1903,7 @@ class RacingDiaryApp(ctk.CTk):
 
         save_button = ctk.CTkButton(self.new_window, text="Save", command=self.save_track_day)
         save_button.pack(pady=10)
+
 
     def save_track_day(self):
         """Save new track day entry."""
