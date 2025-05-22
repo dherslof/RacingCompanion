@@ -3,14 +3,14 @@ Racing Companion helps racing enthusiasts manage maintenance work and track days
 
 # Background
 Racing-Companion is a personal project in order to keep track of track day data and maintenance work for my different vehicles. My wish is to be able to get the time
-so I can continue to update the tool with more features and improvements going forward. 
+so I can continue to update the tool with more features and improvements going forward.
 
-# Features 
-The application has multi-vehicle support for following key features: 
+# Features
+The application has multi-vehicle support for following key features:
 * Maintenance Tracking
-* Track Day Management 
+* Track Day Management
 
-## Planned features 
+## Planned features
 - [ ] Maintenance Reminders
 - [ ] Performance Analytics
 - [ ] Data Export
@@ -18,10 +18,9 @@ The application has multi-vehicle support for following key features:
 
 ## Known issues
 Below is a list of known issues. A known issue can be a improvement of existing functionality, small tweaks or plain bugs.
-- [X] Make the add session format scrollable, in order to handle different screen sizes. 
 
 # Installation
-No specific installation is required if the dependencies are fulfilled. Just clone repositiory and start using! 
+No specific installation is required if the dependencies are fulfilled. Just clone repositiory and start using!
 
 ## Dependencies
 Except having `Python3` installed on a `Ubuntu` (debian) machine, following packages needs to be installed on the machine in order for the application to run properly:
@@ -30,8 +29,8 @@ Except having `Python3` installed on a `Ubuntu` (debian) machine, following pack
 * python3-tk
 
 **pip** packages:
-* numpy 
-* customtkinter 
+* numpy
+* customtkinter
 * matplotlib
 
 In order to simplify the dependency installtion, the provided `install_dependencies.sh` script can be executed with *sudo* privileges. This will installed the required things for you.
@@ -55,7 +54,7 @@ The update is done by:
 $ pip3 install --upgrade Pillow
 ```
 
-# Usage 
+# Usage
 1. Clone the repositiory
 ```bash
 $ git clone git@github.com:dherslof/RacingCompanion.git
@@ -64,14 +63,14 @@ $ git clone git@github.com:dherslof/RacingCompanion.git
 ```bash
 sudo ./install_dependencies.sh
 ```
-3. Use the application! 
+3. Use the application!
 ```bash
 python3 racing-companion.py
 ```
 
-For the best user experiance, start by adding your vehicle! 
+For the best user experiance, start by adding your vehicle!
 
-## Support 
+## Support
 ### Data Storage
-Currently stored in a plain **.json** file. It's simple to read and can be used by other tools. This will be updated in the future. 
+Currently stored in a plain **.json** file. It's simple to read and can be used by other tools. This will be updated in the future.
 
