@@ -88,7 +88,7 @@ class RacingDiaryApp(ctk.CTk):
         self.tab_welcome = self.tab_view.add("Welcome")
         self.tab_sessions = self.tab_view.add("Track Sessions")
         self.tab_maintenance = self.tab_view.add("Maintenance Log")
-        self.tab_part_inventory = self.tab_view.add("Parts Inventory")
+        self.tab_part_inventory = self.tab_view.add("Notebook")
 
         # Store session frames in a dictionary - rename to avoid collision
         self.session_content_frames = {}
@@ -378,9 +378,20 @@ class RacingDiaryApp(ctk.CTk):
         # Save button
         def save_new_vehicle():
             vehicle_name = vehicle_entry.get().strip()
+            vehicle_type = vehicle_type_var.get()
+            model_year = model_year_var.get()
+            misc = misc_entry.get().strip()
             if vehicle_name:
                 self.vehicles.append(vehicle_name)
+                
+                self.vehicle_data[vehicle_name] = {
+                  'type': vehicle_type,
+                  'year': model_year,
+                  'misc': misc
+                }
+
                 save_vehicles(self.vehicles, self.vehicle_data)
+
                 self.display_vehicles()
                 dialog.destroy()
 
