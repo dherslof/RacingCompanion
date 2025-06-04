@@ -15,7 +15,7 @@ NC='\033[0m'
 
 # Dependencies
 APT_PACKAGES="python3-tk"
-PIP_PACKAGES="numpy customtkinter matplotlib"
+PIP_PACKAGES="numpy customtkinter matplotlib pytest"
 
 log() {
     local message="$1"
