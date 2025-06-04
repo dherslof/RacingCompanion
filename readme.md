@@ -1,6 +1,8 @@
 # Racing-Companion
 Racing Companion helps racing enthusiasts manage maintenance work and track days for their racing vehicles with an intuitive and powerful interface.
 
+Read more (non technical) [here](https://dherslof.github.io/RacingCompanion/)!
+
 # Background
 Racing-Companion is a personal project in order to keep track of track day data and maintenance work for my different vehicles. My wish is to be able to get the time
 so I can continue to update the tool with more features and improvements going forward.
@@ -68,9 +70,19 @@ sudo ./install_dependencies.sh
 python3 racing-companion.py
 ```
 
-For the best user experiance, start by adding your vehicle!
+For the best user experience, start by adding your vehicle!
+
+# Test
+Currently the testing is a bit limited. However, it's very important for the project and highly prioritized. The aim is 100% coverage on base functionality, non GUI. Since I have limited experience of GUI testing, there is no set target but it should not be forgotten!
+
+## Unit tests
+`pytest` is used for unit testing, and unit test files are stored at `test/`.
+
+Run test from repo root:
+```bash
+PYTHONPATH=. pytest
+```
 
 ## Support
 ### Data Storage
 Currently stored in a plain **.json** file. It's simple to read and can be used by other tools. This will be updated in the future.
-
