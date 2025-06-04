@@ -171,6 +171,11 @@ for package in $APT_PACKAGES; do
         if ! command_exists python3; then
             missing_apt+=("$package")
         fi
+    elif [[ "$package" == "python3-tk" ]]; then
+        # Check if tkinter can be imported in Python, since it's a Python package and not a command
+        if ! python3 -c "import tkinter" &>/dev/null; then
+            missing_apt+=("$package")
+        fi
     else
         if ! command_exists "$package"; then
             missing_apt+=("$package")
