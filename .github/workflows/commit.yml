@@ -1,0 +1,31 @@
+name: commit
+
+# Trigger the workflow on all branches and pull requests towards master
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Set up Python 3.11
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          sudo ./install_dependencies.sh
+          pip3 install --upgrade Pillow
+
+      - name: Test execution
+        run: |
+          PYTHONPATH=. pytest
