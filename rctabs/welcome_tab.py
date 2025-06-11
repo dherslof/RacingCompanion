@@ -4,12 +4,21 @@
 import customtkinter as ctk
 from tkinter import StringVar
 from datetime import datetime
-from rcutils.data_utils import save_vehicles
+from rcfunc.data_utils import save_vehicles
+from rcfunc.vehicle_mngr import VehicleMngr
 
 class WelcomePage(ctk.CTkFrame):
     def __init__(self, master, app):
         super().__init__(master)
         self.app = app
+        # Initialize VehicleManager with existing data
+        self.vehicle_manager = VehicleMngr(
+            vehicles=getattr(app, 'vehicles', []),
+            vehicle_data=getattr(app, 'vehicle_data', {})
+        )
+        # Set active vehicle if one exists
+        if hasattr(app, 'active_vehicle') and app.active_vehicle:
+            self.vehicle_manager.active_vehicle = app.active_vehicle
         self.setup_welcome_page()
 
     def setup_welcome_page(self):
@@ -59,13 +68,19 @@ class WelcomePage(ctk.CTkFrame):
 
         self.display_vehicles()
 
+    def sync_with_app(self):
+        """Sync vehicle manager data with app data."""
+        self.app.vehicles = self.vehicle_manager.vehicles
+        self.app.vehicle_data = self.vehicle_manager.vehicle_data
+        self.app.active_vehicle = self.vehicle_manager.active_vehicle
+
     def display_vehicles(self):
         """Display vehicles as cards in the welcome page."""
         # Clear existing vehicles
         for widget in self.vehicles_container.winfo_children():
             widget.destroy()
 
-        if not self.app.vehicles:
+        if not self.vehicle_manager.has_vehicles():
             empty_label = ctk.CTkLabel(self.vehicles_container, text="No vehicles added yet. Click '+ Add Vehicle' to add one.",
                                     font=("Arial", 14), text_color="gray")
             empty_label.pack(pady=20)
@@ -77,24 +92,17 @@ class WelcomePage(ctk.CTkFrame):
         grid_frame.columnconfigure(1, weight=1)
         grid_frame.columnconfigure(2, weight=1)
 
-        for i, vehicle in enumerate(self.app.vehicles):
+        for i, vehicle in enumerate(self.vehicle_manager.get_all_vehicles()):
             row = i // 3
             col = i % 3
-            card_color = "#D4EFDF" if vehicle == self.app.active_vehicle else "#eeeeee"
+            card_color = "#D4EFDF" if self.vehicle_manager.is_active_vehicle(vehicle) else "#eeeeee"
             card = ctk.CTkFrame(grid_frame, corner_radius=10, border_width=1, fg_color=card_color)
             card.grid(row=row, column=col, padx=10, pady=10, sticky="ew")
 
             content_frame = ctk.CTkFrame(card, fg_color="transparent")
             content_frame.pack(fill="both", expand=True, padx=15, pady=15)
 
-            vehicle_type = self.app.vehicle_data.get(vehicle, {}).get('type', 'Car')
-            abbreviations = {
-                "Car": "CAR",
-                "Motorcycle": "MC",
-                "Quad": "QUAD",
-                "Snowmobile": "SLED"
-            }
-            vehicle_type_abbr = abbreviations.get(vehicle_type, vehicle_type[:4].upper())
+            vehicle_type_abbr = self.vehicle_manager.get_vehicle_type_abbreviation(vehicle)
 
             icon_frame = ctk.CTkFrame(content_frame, width=40, height=40,
                                     corner_radius=20, fg_color="#3498DB")
@@ -128,7 +136,7 @@ class WelcomePage(ctk.CTkFrame):
                                     height=28)
             delete_btn.pack(side="right", padx=5)
 
-            select_btn_text = "Unselect" if vehicle == self.app.active_vehicle else "Select"
+            select_btn_text = "Unselect" if self.vehicle_manager.is_active_vehicle(vehicle) else "Select"
             select_btn = ctk.CTkButton(button_frame,
                                     text=select_btn_text,
                                     command=lambda v=vehicle: self.toggle_active_vehicle(v),
@@ -139,20 +147,18 @@ class WelcomePage(ctk.CTkFrame):
             select_btn.pack(side="left", padx=5)
 
             def on_enter(event, w=card, v=vehicle):
-                if v != self.app.active_vehicle:
+                if not self.vehicle_manager.is_active_vehicle(v):
                     w.configure(fg_color="#D4EFDF")
             def on_leave(event, w=card, v=vehicle):
-                if v != self.app.active_vehicle:
+                if not self.vehicle_manager.is_active_vehicle(v):
                     w.configure(fg_color="#eeeeee")
             card.bind("<Enter>", on_enter)
             card.bind("<Leave>", on_leave)
 
     def toggle_active_vehicle(self, vehicle):
         """Set the selected vehicle as the active vehicle."""
-        if self.app.active_vehicle == vehicle:
-            self.app.active_vehicle = None
-        else:
-            self.app.active_vehicle = vehicle
+        self.vehicle_manager.toggle_active_vehicle(vehicle)
+        self.sync_with_app()
 
         self.display_vehicles()
         if hasattr(self.app, "sessions_page"):
@@ -227,15 +233,11 @@ class WelcomePage(ctk.CTkFrame):
         def save_new_vehicle():
             vehicle_name = vehicle_entry.get().strip()
             vehicle_type = vehicle_type_var.get()
-            model_year = model_year_var.get()
+            model_year = int(model_year_var.get())
             misc = misc_entry.get().strip()
-            if vehicle_name:
-                self.app.vehicles.append(vehicle_name)
-                self.app.vehicle_data[vehicle_name] = {
-                  'type': vehicle_type,
-                  'year': model_year,
-                  'misc': misc
-                }
+            
+            if self.vehicle_manager.add_vehicle(vehicle_name, vehicle_type, model_year, misc):
+                self.sync_with_app()
                 save_vehicles(self.app.vehicles, self.app.vehicle_data)
                 self.display_vehicles()
                 dialog.destroy()
@@ -265,7 +267,7 @@ class WelcomePage(ctk.CTkFrame):
         title = ctk.CTkLabel(container, text="Edit Vehicle", font=("Arial", 16, "bold"))
         title.pack(pady=10)
 
-        vehicle_data = self.app.vehicle_data.get(vehicle, {})
+        vehicle_data = self.vehicle_manager.get_vehicle_info(vehicle) or {}
 
         ctk.CTkLabel(container, text="Vehicle Name:", anchor="w").pack(fill="x", pady=(10, 0))
         vehicle_entry = ctk.CTkEntry(container, height=35, fg_color="#F5F7FA")
@@ -322,19 +324,11 @@ class WelcomePage(ctk.CTkFrame):
         def save_edited_vehicle():
             new_name = vehicle_entry.get().strip()
             new_type = vehicle_type_var.get()
-            new_year = model_year_var.get()
+            new_year = int(model_year_var.get())
             new_misc = misc_entry.get().strip()
 
-            if new_name:
-                if new_name != vehicle:
-                    index = self.app.vehicles.index(vehicle)
-                    self.app.vehicles[index] = new_name
-                    self.app.vehicle_data[new_name] = self.app.vehicle_data.pop(vehicle, {})
-                self.app.vehicle_data[new_name] = {
-                    'type': new_type,
-                    'year': new_year,
-                    'misc': new_misc
-                }
+            if self.vehicle_manager.edit_vehicle(vehicle, new_name, new_type, new_year, new_misc):
+                self.sync_with_app()
                 save_vehicles(self.app.vehicles, self.app.vehicle_data)
                 self.display_vehicles()
                 dialog.destroy()
@@ -379,12 +373,11 @@ class WelcomePage(ctk.CTkFrame):
         cancel_btn.pack(side="left", padx=5)
 
         def confirm_delete():
-            self.app.vehicles.remove(vehicle)
-            if vehicle in self.app.vehicle_data:
-                del self.app.vehicle_data[vehicle]
-            save_vehicles(self.app.vehicles, self.app.vehicle_data)
-            self.display_vehicles()
-            dialog.destroy()
+            if self.vehicle_manager.delete_vehicle(vehicle):
+                self.sync_with_app()
+                save_vehicles(self.app.vehicles, self.app.vehicle_data)
+                self.display_vehicles()
+                dialog.destroy()
 
         delete_btn = ctk.CTkButton(buttons_frame,
                                 text="Delete",

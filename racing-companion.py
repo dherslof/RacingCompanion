@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from rcutils.data_utils import load_vehicles, load_data, load_maintenance_entries
+from rcfunc.data_utils import load_vehicles, load_data, load_maintenance_entries
 from rctabs.welcome_tab import WelcomePage
 from rctabs.track_sessions_tab import TrackSessionsPage
 from rctabs.maintenance_tab import MaintenancePage
@@ -54,7 +54,7 @@ class RacingDiaryApp(ctk.CTk):
         self.notebook_page = NotebookPage(self.tab_part_inventory, self)
         self.notebook_page.pack(fill="both", expand=True)
 
-    # Optionally, add global methods like update_footer here
+    # Global methods
     def update_footer(self):
         """Update the footer to display the active vehicle."""
         if self.active_vehicle:
