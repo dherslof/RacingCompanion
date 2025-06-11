@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from tkinter import StringVar
-from rcutils.data_utils import save_maintenance_entries, load_maintenance_entries
+from rcfunc.data_utils import save_maintenance_entries, load_maintenance_entries
 import matplotlib.pyplot as plt
 import numpy as np
 import re

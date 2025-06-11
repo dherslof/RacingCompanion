@@ -6,7 +6,7 @@
 import unittest
 import os
 
-from rcutils.data_utils import save_vehicles, load_vehicles, save_maintenance_entries, load_maintenance_entries, save_data, load_data
+from rcfunc.data_utils import save_vehicles, load_vehicles, save_maintenance_entries, load_maintenance_entries, save_data, load_data
 
 
 class TestDataUtils(unittest.TestCase):
