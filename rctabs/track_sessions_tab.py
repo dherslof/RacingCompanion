@@ -1,16 +1,22 @@
 import customtkinter as ctk
 from tkinter import StringVar
 from rcfunc.data_utils import save_data
+from rcfunc.track_session_mngr import TrackSessionMngr
 
 class TrackSessionsPage(ctk.CTkFrame):
     def __init__(self, master, app):
         super().__init__(master)
         self.app = app
-        self.track_days = self.app.track_days
-        self.vehicles = self.app.vehicles
-        self.active_vehicle = self.app.active_vehicle
-        self.weather_options = self.app.weather_options
         self.session_content_frames = {}
+
+        # Use TrackSessionMngr for all track day/session logic
+        self.track_session_mngr = TrackSessionMngr(
+            track_days=self.app.track_days,
+            vehicles=self.app.vehicles,
+            active_vehicle=self.app.active_vehicle,
+            weather_options=self.app.weather_options,
+            save_callback=save_data
+        )
 
         self.setup_track_sessions_page()
 
@@ -25,16 +31,12 @@ class TrackSessionsPage(ctk.CTkFrame):
         for widget in self.session_frame.winfo_children():
             widget.destroy()
 
-        # Always use up-to-date data
-        self.track_days = self.app.track_days
-        self.vehicles = self.app.vehicles
-        self.active_vehicle = self.app.active_vehicle
+        # Always use up-to-date data from app and update manager
+        self.track_session_mngr.update_data_references(
+            self.app.track_days, self.app.vehicles, self.app.active_vehicle
+        )
 
-        # Filter track days based on the active vehicle
-        if self.active_vehicle:
-            filtered_track_days = [day for day in self.track_days if day.get("vehicle") == self.active_vehicle]
-        else:
-            filtered_track_days = self.track_days  # Show all track days if no active vehicle is selected
+        filtered_track_days = self.track_session_mngr.get_filtered_track_days()
 
         if not filtered_track_days:
             no_track_days_label = ctk.CTkLabel(
@@ -98,9 +100,12 @@ class TrackSessionsPage(ctk.CTkFrame):
                                          command=self.create_new_track_day)
         new_session_button.pack(pady=10)
 
-    def delete_track_day(self, track_day_idx):
+    def delete_track_day(self, filtered_idx):
         """Delete a track day with confirmation."""
-        track_day = self.track_days[track_day_idx]
+        filtered_track_days = self.track_session_mngr.get_filtered_track_days()
+        if not (0 <= filtered_idx < len(filtered_track_days)):
+            return
+        track_day = filtered_track_days[filtered_idx]
 
         dialog = ctk.CTkToplevel(self.app)
         dialog.title("Confirm Delete")
@@ -130,17 +135,9 @@ class TrackSessionsPage(ctk.CTkFrame):
         cancel_btn.pack(side="left", padx=5)
 
         def confirm_delete():
-            self.track_days.pop(track_day_idx)
-            save_data(self.track_days)
-            if track_day_idx in self.session_content_frames:
-                del self.session_content_frames[track_day_idx]
-            new_frames = {}
-            for k, v in self.session_content_frames.items():
-                if k > track_day_idx:
-                    new_frames[k-1] = v
-                else:
-                    new_frames[k] = v
-            self.session_content_frames = new_frames
+            self.track_session_mngr.delete_track_day(filtered_idx)
+            # Rebuild content frames since indices may have changed
+            self.session_content_frames = {}
             self.display_track_days()
             dialog.destroy()
 
@@ -171,7 +168,10 @@ class TrackSessionsPage(ctk.CTkFrame):
                 widget.destroy()
             divider = ctk.CTkFrame(content_frame, height=1, fg_color="#D0D3D4")
             divider.pack(fill="x", pady=5)
-            self.display_sessions_inline(self.track_days[idx], content_frame, idx)
+            # Use manager to get sessions for the filtered track day
+            filtered_track_days = self.track_session_mngr.get_filtered_track_days()
+            if 0 <= idx < len(filtered_track_days):
+                self.display_sessions_inline(filtered_track_days[idx], content_frame, idx)
             content_frame.pack(fill="x", padx=10, pady=(0, 10), expand=True)
             toggle_button.configure(text="Hide Sessions", fg_color="#E67E22", hover_color="#D35400")
 
@@ -299,7 +299,10 @@ class TrackSessionsPage(ctk.CTkFrame):
         add_session_button.pack(side="right", padx=5, pady=5)
 
     def modify_session_form(self, track_day_idx, session_number):
-        track_day = self.track_days[track_day_idx]
+        filtered_track_days = self.track_session_mngr.get_filtered_track_days()
+        if not (0 <= track_day_idx < len(filtered_track_days)):
+            return
+        track_day = filtered_track_days[track_day_idx]
         session = next((s for s in track_day["sessions"] if s.get("session_number") == session_number), None)
         if not session:
             return
@@ -321,10 +324,10 @@ class TrackSessionsPage(ctk.CTkFrame):
         self.laps_entry.pack(fill="x", pady=(0, 10))
 
         ctk.CTkLabel(form_frame, text="Weather:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
-        self.weather_var = StringVar(value=session.get("weather", self.weather_options[0]))
+        self.weather_var = StringVar(value=session.get("weather", self.track_session_mngr.weather_options[0]))
         self.weather_dropdown = ctk.CTkOptionMenu(
             form_frame,
-            values=self.weather_options,
+            values=self.track_session_mngr.weather_options,
             variable=self.weather_var,
             width=450,
             height=35,
@@ -402,7 +405,7 @@ class TrackSessionsPage(ctk.CTkFrame):
         session["tire_status"] = self.tire_status_entry.get()
         session["best_lap_time"] = self.best_lap_time_entry.get()
         session["comments"] = self.comments_entry.get()
-        save_data(self.track_days)
+        self.track_session_mngr.save_callback(self.track_session_mngr.track_days)
         self.session_form_window.destroy()
         content_data = self.session_content_frames.get(track_day_idx)
         if content_data and content_data["visible"]:
@@ -417,7 +420,10 @@ class TrackSessionsPage(ctk.CTkFrame):
         self.session_form_window.title("Add New Session")
         self.session_form_window.geometry("550x650")
 
-        track_day = self.track_days[track_day_idx]
+        filtered_track_days = self.track_session_mngr.get_filtered_track_days()
+        if not (0 <= track_day_idx < len(filtered_track_days)):
+            return
+        track_day = filtered_track_days[track_day_idx]
         track_day_vehicle = track_day.get("vehicle", "N/A")
 
         self.session_form_window.transient(self)
@@ -470,10 +476,10 @@ class TrackSessionsPage(ctk.CTkFrame):
             vehicle_value = track_day_vehicle
         else:
             ctk.CTkLabel(scrollable_frame, text="Vehicle:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
-            vehicle_var = StringVar(value=self.vehicles[0])
+            vehicle_var = StringVar(value=self.track_session_mngr.vehicles[0])
             vehicle_dropdown = ctk.CTkOptionMenu(
                 scrollable_frame,
-                values=self.vehicles,
+                values=self.track_session_mngr.vehicles,
                 variable=vehicle_var,
                 width=450,
                 height=35,
@@ -488,10 +494,10 @@ class TrackSessionsPage(ctk.CTkFrame):
             vehicle_value = vehicle_var
 
         ctk.CTkLabel(scrollable_frame, text="Weather:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
-        weather_var = StringVar(value=self.weather_options[0])
+        weather_var = StringVar(value=self.track_session_mngr.weather_options[0])
         weather_dropdown = ctk.CTkOptionMenu(
             scrollable_frame,
-            values=self.weather_options,
+            values=self.track_session_mngr.weather_options,
             variable=weather_var,
             width=450,
             height=35,
@@ -547,8 +553,8 @@ class TrackSessionsPage(ctk.CTkFrame):
                 "comments": comments
             }
 
-            self.track_days[track_day_idx]["sessions"].append(new_session)
-            save_data(self.track_days)
+            # Use manager to add session
+            self.track_session_mngr.add_session(track_day_idx, new_session)
             self.session_form_window.destroy()
             self.display_track_days()
             cleanup_mousewheel_bindings()
@@ -598,10 +604,10 @@ class TrackSessionsPage(ctk.CTkFrame):
         self.organizer_entry.pack()
 
         ctk.CTkLabel(self.new_window, text="Vehicle Used:").pack()
-        self.vehicle_var = StringVar(value=self.vehicles[0] if self.vehicles else "No Vehicles Available")
+        self.vehicle_var = StringVar(value=self.track_session_mngr.vehicles[0] if self.track_session_mngr.vehicles else "No Vehicles Available")
         self.vehicle_dropdown = ctk.CTkOptionMenu(
             self.new_window,
-            values=self.vehicles if self.vehicles else ["No Vehicles Available"],
+            values=self.track_session_mngr.vehicles if self.track_session_mngr.vehicles else ["No Vehicles Available"],
             variable=self.vehicle_var
         )
         self.vehicle_dropdown.pack()
@@ -611,19 +617,14 @@ class TrackSessionsPage(ctk.CTkFrame):
 
     def save_track_day(self):
         selected_vehicle = self.vehicle_var.get()
-        if not self.vehicles or selected_vehicle == "No Vehicles Available":
+        try:
+            self.track_session_mngr.create_track_day(
+                track_name=self.track_entry.get(),
+                date=self.date_entry.get(),
+                organizer=self.organizer_entry.get(),
+                vehicle=selected_vehicle
+            )
+            self.new_window.destroy()
+            self.display_track_days()
+        except ValueError:
             ctk.CTkLabel(self.new_window, text="Please add a vehicle before creating a track day.", text_color="red").pack()
-            return
-
-        new_day = {
-            "track": self.track_entry.get(),
-            "date": self.date_entry.get(),
-            "organizer": self.organizer_entry.get(),
-            "vehicle": selected_vehicle,
-            "sessions": []
-        }
-
-        self.track_days.append(new_day)
-        save_data(self.track_days)
-        self.new_window.destroy()
-        self.display_track_days()
