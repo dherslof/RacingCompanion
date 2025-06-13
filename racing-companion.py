@@ -1,3 +1,8 @@
+# This file is part of the Racing-Companion project.
+#
+# Description: Main application for the Racing Companion. 
+# License: TBD
+
 import customtkinter as ctk
 from rcfunc.data_utils import load_vehicles, load_data, load_maintenance_entries
 from rctabs.welcome_tab import WelcomePage
