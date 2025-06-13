@@ -75,29 +75,36 @@ class MaintenancePage(ctk.CTkFrame):
       vehicle_frame = ctk.CTkFrame(self.advanced_maintenance_search_frame, fg_color="transparent")
       vehicle_frame.pack(fill="x", pady=5)
       ctk.CTkLabel(vehicle_frame, text="Vehicle:").pack(side="left", padx=(0, 10))
+
       filter_vehicle_options = ["All"] + self.maintenance_manager.get_available_vehicles()
       self.maintenance_vehicle_filter = ctk.CTkComboBox(vehicle_frame, values=filter_vehicle_options)
       self.maintenance_vehicle_filter.pack(side="left", fill="x", expand=True)
+
       active_vehicle = self.maintenance_manager.get_active_vehicle()
       if active_vehicle:
          self.maintenance_vehicle_filter.set(active_vehicle)
       else:
          self.maintenance_vehicle_filter.set("All")
+
       date_frame = ctk.CTkFrame(self.advanced_maintenance_search_frame, fg_color="transparent")
       date_frame.pack(fill="x", pady=5)
       ctk.CTkLabel(date_frame, text="Date range:").pack(side="left", padx=(0, 10))
+
       self.maintenance_entry_start_date = ctk.CTkEntry(date_frame, placeholder_text="YYYY-MM-DD")
       self.maintenance_entry_start_date.pack(side="left", padx=(0, 5))
       ctk.CTkLabel(date_frame, text="to").pack(side="left", padx=5)
       self.maintenance_entry_end_date = ctk.CTkEntry(date_frame, placeholder_text="YYYY-MM-DD")
       self.maintenance_entry_end_date.pack(side="left", padx=(5, 0))
+
       type_frame = ctk.CTkFrame(self.advanced_maintenance_search_frame, fg_color="transparent")
       type_frame.pack(fill="x", pady=5)
       ctk.CTkLabel(type_frame, text="Type:").pack(side="left", padx=(0, 10))
       self.maintenance_type_var = ctk.StringVar(value="All")
       types = ["All", "Routine", "Repair", "Major", "Preventive"]
+
       for t in types:
          ctk.CTkRadioButton(type_frame, text=t, variable=self.maintenance_type_var, value=t).pack(side="left", padx=10)
+
       filter_button_frame = ctk.CTkFrame(self.advanced_maintenance_search_frame, fg_color="transparent")
       filter_button_frame.pack(fill="x", pady=10)
       ctk.CTkButton(filter_button_frame, text="Apply Filters", command=self.apply_maintenance_filters).pack(side="right")
@@ -120,16 +127,19 @@ class MaintenancePage(ctk.CTkFrame):
       self.stats_tabs.add("Maintenance Frequency")
       self.stats_tabs.add("Time Spent")
       self.stats_tabs.add("Vehicle Comparison")
+
       freq_frame = ctk.CTkFrame(self.stats_tabs.tab("Maintenance Frequency"), fg_color="transparent")
       freq_frame.pack(fill="both", expand=True, padx=20, pady=20)
       self.freq_fig, self.freq_ax = plt.subplots(figsize=(10, 6))
       self.freq_canvas = FigureCanvasTkAgg(self.freq_fig, master=freq_frame)
       self.freq_canvas.get_tk_widget().pack(fill="both", expand=True)
+
       time_frame = ctk.CTkFrame(self.stats_tabs.tab("Time Spent"), fg_color="transparent")
       time_frame.pack(fill="both", expand=True, padx=20, pady=20)
       self.time_fig, self.time_ax = plt.subplots(figsize=(10, 6))
       self.time_canvas = FigureCanvasTkAgg(self.time_fig, master=time_frame)
       self.time_canvas.get_tk_widget().pack(fill="both", expand=True)
+
       vehicle_frame = ctk.CTkFrame(self.stats_tabs.tab("Vehicle Comparison"), fg_color="transparent")
       vehicle_frame.pack(fill="both", expand=True, padx=20, pady=20)
       self.vehicle_fig, self.vehicle_ax = plt.subplots(figsize=(10, 6))
@@ -311,9 +321,9 @@ class MaintenancePage(ctk.CTkFrame):
       chart_data = self.maintenance_manager.get_chart_data("pie")
       if chart_data.get("labels"):
          self.time_ax.pie(
-            chart_data["values"], 
-            labels=chart_data["labels"], 
-            autopct='%1.1f%%', 
+            chart_data["values"],
+            labels=chart_data["labels"],
+            autopct='%1.1f%%',
             startangle=90,
             colors=plt.cm.tab10.colors[:len(chart_data["labels"])]
          )
@@ -340,7 +350,7 @@ class MaintenancePage(ctk.CTkFrame):
 
 class MaintenanceEntryDialog:
    """Dialog for adding/editing maintenance entries"""
-   def __init__(self, parent, maintenance_manager: MaintenanceMngr, 
+   def __init__(self, parent, maintenance_manager: MaintenanceMngr,
              callback, entry_to_edit: Optional[MaintenanceEntry] = None):
       self.parent = parent
       self.maintenance_manager = maintenance_manager
@@ -356,7 +366,7 @@ class MaintenanceEntryDialog:
       self.dialog = ctk.CTkToplevel(self.parent)
       title = "Edit Maintenance Entry" if self.is_editing else "Add Maintenance Entry"
       self.dialog.title(title)
-      self.dialog.geometry("500x600")
+      self.dialog.geometry("520x600")
       self.dialog.transient(self.parent)
       self.parent.after(100, self._setup_dialog_focus)
 
@@ -370,14 +380,17 @@ class MaintenanceEntryDialog:
    def _setup_form(self):
       form_frame = ctk.CTkFrame(self.dialog, fg_color="transparent")
       form_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
       title_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
       title_frame.pack(fill="x", pady=(0, 10))
       ctk.CTkLabel(title_frame, text="Title:").pack(side="left", padx=(0, 10))
+
       self.title_entry = ctk.CTkEntry(title_frame, placeholder_text="Maintenance title...")
       self.title_entry.pack(side="left", fill="x", expand=True)
       vehicle_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
       vehicle_frame.pack(fill="x", pady=10)
       ctk.CTkLabel(vehicle_frame, text="Vehicle:").pack(side="left", padx=(0, 10))
+
       self.vehicle_combo = ctk.CTkComboBox(
          vehicle_frame, 
          values=self.maintenance_manager.get_available_vehicles()
@@ -386,6 +399,7 @@ class MaintenanceEntryDialog:
       date_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
       date_frame.pack(fill="x", pady=10)
       ctk.CTkLabel(date_frame, text="Date:").pack(side="left", padx=(0, 10))
+
       self.date_entry = ctk.CTkEntry(date_frame, placeholder_text="YYYY-MM-DD")
       self.date_entry.pack(side="left", fill="x", expand=True)
       duration_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
@@ -393,20 +407,23 @@ class MaintenanceEntryDialog:
       ctk.CTkLabel(duration_frame, text="Duration:").pack(side="left", padx=(0, 10))
       self.duration_entry = ctk.CTkEntry(duration_frame, placeholder_text="e.g. 1 hour 30 minutes")
       self.duration_entry.pack(side="left", fill="x", expand=True)
+
       hb_ref_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
       hb_ref_frame.pack(fill="x", pady=(0, 10))
       ctk.CTkLabel(hb_ref_frame, text="Handbook/Manual Ref:").pack(side="left", padx=(0, 10))
       self.hb_ref_entry = ctk.CTkEntry(hb_ref_frame, placeholder_text="Haynes manual 6.7")
       self.hb_ref_entry.pack(side="left", fill="x", expand=True)
+
       tags_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
       tags_frame.pack(fill="x", pady=(5, 5))
       ctk.CTkLabel(tags_frame, text="Tags:").pack(side="left", padx=(0, 10))
       tags_subframe = ctk.CTkFrame(tags_frame, fg_color="transparent")
       tags_subframe.pack(side="left", fill="x", expand=True)
       self.tag_vars = {}
-      tags = ["Routine", "Repair", "Major", "Minor", "Preventive", "Oil", 
+      tags = ["Routine", "Repair", "Major", "Minor", "Preventive", "Oil",
             "Tires", "Engine", "Chassis", "Brakes", "Update", "Electronics"]
       columns = 4
+
       for i, tag in enumerate(tags):
          var = ctk.BooleanVar(value=False)
          self.tag_vars[tag] = var
@@ -419,15 +436,18 @@ class MaintenanceEntryDialog:
       desc_label.pack(anchor="w", pady=(5, 5))
       self.desc_text = ctk.CTkTextbox(form_frame, height=150)
       self.desc_text.pack(fill="x", expand=True)
+
       button_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
       button_frame.pack(fill="x", pady=(20, 0))
       ctk.CTkButton(
          button_frame,
          text="Cancel",
          command=self._cancel,
-         fg_color="#6C7A89",
+         fg_color="#E74C3C",
+         hover_color="#C0392B",
          width=100
       ).pack(side="right", padx=(10, 0))
+
       save_text = "Update" if self.is_editing else "Save"
       ctk.CTkButton(
          button_frame,
