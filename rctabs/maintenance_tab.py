@@ -120,6 +120,16 @@ class MaintenancePage(ctk.CTkFrame):
       )
       self.maintenance_entries_container.pack(fill="both", expand=True, padx=20, pady=20)
       self.maintenance_stats_view_frame = ctk.CTkFrame(self, fg_color="transparent")
+      
+      def _on_mousewheel(event):
+        if event.num == 4 or event.delta > 0:
+            self.maintenance_entries_container._parent_canvas.yview_scroll(-1, "units")
+        elif event.num == 5 or event.delta < 0:
+            self.maintenance_entries_container._parent_canvas.yview_scroll(1, "units")
+
+      self.maintenance_entries_container._parent_canvas.bind_all("<MouseWheel>", _on_mousewheel)
+      self.maintenance_entries_container._parent_canvas.bind_all("<Button-4>", _on_mousewheel)
+      self.maintenance_entries_container._parent_canvas.bind_all("<Button-5>", _on_mousewheel)
 
    def _setup_statistics_view(self):
       self.stats_tabs = ctk.CTkTabview(self.maintenance_stats_view_frame)
@@ -205,10 +215,12 @@ class MaintenancePage(ctk.CTkFrame):
       for widget in self.maintenance_entries_container.winfo_children():
          widget.destroy()
       filtered_entries = self.maintenance_manager.filter_entries(
-         self.current_filter, 
+         self.current_filter,
          use_active_vehicle=not user_search
       )
-      for entry in filtered_entries:
+
+      reversed_maintenance_entries = list(reversed(filtered_entries))
+      for entry in reversed_maintenance_entries:
          self._create_maintenance_entry_card(entry)
       if self.maintenance_view_selector.get() == "Statistics":
          self.update_maintenance_statistics()
