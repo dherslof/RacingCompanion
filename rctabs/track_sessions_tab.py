@@ -51,7 +51,9 @@ class TrackSessionsPage(ctk.CTkFrame):
             new_session_button.pack(pady=10)
             return
 
-        for idx, track_day in enumerate(filtered_track_days):
+        # Reverse the order of track days to show the most recent first. New variable to not break original index.
+        reversed_track_day_list = list(reversed(filtered_track_days))
+        for idx, track_day in enumerate(reversed_track_day_list):
             card = ctk.CTkFrame(self.session_frame, corner_radius=10, border_width=1)
             card.pack(fill="x", pady=5, padx=10)
 
@@ -557,6 +559,7 @@ class TrackSessionsPage(ctk.CTkFrame):
             self.track_session_mngr.add_session(track_day_idx, new_session)
             self.session_form_window.destroy()
             self.display_track_days()
+            self.toggle_sessions_inline(track_day_idx, None)
             cleanup_mousewheel_bindings()
 
         cancel_button = ctk.CTkButton(
