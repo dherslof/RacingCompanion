@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # This file is part of the Racing-Companion project.
 #
 # Description: Main application for the Racing Companion. 
