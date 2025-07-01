@@ -8,14 +8,14 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  Unit-test:
     runs-on: ubuntu-latest
 
     steps:
       # Checkout the repository
       - uses: actions/checkout@v4
 
-      # Set up Python 3.11
+      # Set up Python
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
@@ -29,3 +29,48 @@ jobs:
       - name: Test execution
         run: |
           PYTHONPATH=. pytest
+
+  User-Install-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # Install the packages on the system installed python, in order to simulate a user installation
+      - name: Install system Python dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip python3-tk python3-setuptools python-is-python3
+          pip3 install --upgrade Pillow customtkinter numpy matplotlib
+
+      - name: Set install pre-conditions
+        run: |
+          chmod +x setup_local_bin_link.sh
+          chmod +x racing-companion.py
+          mkdir -p $HOME/.local/bin
+
+      - name: Run install script
+        run: ./setup_local_bin_link.sh
+
+      - name: Test if link was created
+        run: |
+          if [[ ! -L "$HOME/.local/bin/racing-companion" ]]; then
+            echo "FAIL - Symlink not created."
+            exit 1
+          fi
+          echo "OK - Symlink created."
+
+      # Test if the application can be launched. xvfb-run is used to simulate a display environment for GUI applications, since no display are available in CI.
+      - name: Test if command runs via xvfb
+        run: |
+          set +e  # Temporarily disable 'exit on error' in order to handle timeout error as success
+          export PATH="$HOME/.local/bin:$PATH"
+          xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24' timeout 3s racing-companion
+          code=$?
+          if [[ $code -eq 0 || $code -eq 124 ]]; then
+            echo "OK - Racing-Companion command started (GUI launch test)."
+          else
+            echo "FAIL - Racing-Companion did not start properly (exit code $code)."
+            exit 1
+          fi
