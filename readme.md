@@ -21,9 +21,6 @@ The application has multi-vehicle support for following key features:
 ## Known issues
 Below is a list of known issues. A known issue can be a improvement of existing functionality, small tweaks or plain bugs.
 
-# Installation
-No specific installation is required if the dependencies are fulfilled. Just clone repositiory and start using!
-
 ## Dependencies
 Except having `Python3` installed on a `Ubuntu` (debian) machine, following packages needs to be installed on the machine in order for the application to run properly:
 
@@ -56,7 +53,9 @@ The update is done by:
 $ pip3 install --upgrade Pillow
 ```
 
-# Usage
+# Installation & Usage
+No specific installation is required if the dependencies are fulfilled. Just clone repository and start using!
+
 1. Clone the repositiory
 ```bash
 $ git clone git@github.com:dherslof/RacingCompanion.git
@@ -71,6 +70,8 @@ python3 racing-companion.py
 ```
 
 For the best user experience, start by adding your vehicle!
+
+*Optional*: The `setup_local_bin_link.sh` script can be used during installation as well. It will link the racing-companion to your local bin directory which will let you execute the application outside of the repo directory.
 
 # Test
 Currently the testing is a bit limited. However, it's very important for the project and highly prioritized. The aim is 100% coverage on base functionality, non GUI. Since I have limited experience of GUI testing, there is no set target but it should not be forgotten!
