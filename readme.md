@@ -86,4 +86,4 @@ PYTHONPATH=. pytest
 
 ## Support
 ### Data Storage
-Currently stored in a plain **.json** file. It's simple to read and can be used by other tools. This will be updated in the future.
+The application uses `/home/$USER/racing-companion` as a storage directory, and data files will be stored under `/home/$USER/racing-companion/.rcstorage/`. Data files are currently stored in a plain **.json** file. It's simple to read and can be used by other tools. This will be updated in the future.
