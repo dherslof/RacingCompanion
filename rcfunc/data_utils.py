@@ -4,7 +4,7 @@ import json
 import os
 
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.join(os.path.expanduser("~"), ".local/racing-companion")
 data_file = os.path.join(BASE_DIR, ".rcstorage/track_sessions.json")
 vehicles_file = os.path.join(BASE_DIR, ".rcstorage/vehicles.json")
 maintenance_file = os.path.join(BASE_DIR, ".rcstorage/maintenance_entries.json")
