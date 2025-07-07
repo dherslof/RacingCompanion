@@ -3,6 +3,9 @@
 # Description: Unit tests for the track session management functionality
 # License: TBD
 import pytest
+import os
+import csv
+import tempfile
 from rcfunc.track_session_mngr import TrackSessionMngr
 
 class TestTrackSessionMngr:
@@ -142,3 +145,62 @@ class TestTrackSessionMngr:
       assert self.mngr.track_days == new_days
       assert self.mngr.vehicles == new_vehicles
       assert self.mngr.active_vehicle == "Car3"
+
+   def test_export_track_day_to_csv(self):
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmpfile:
+            tmp_path = tmpfile.name
+        try:
+            result = self.mngr.export_track_day_to_csv(0, tmp_path)
+            assert result is True
+
+            # Check that the file exists and has expected content
+            assert os.path.exists(tmp_path)
+            with open(tmp_path, newline='', encoding='utf-8') as csvfile:
+                reader = csv.DictReader(csvfile)
+                rows = list(reader)
+                # Should have as many rows as sessions in track day 0
+                assert len(rows) == len(self.track_days[0]["sessions"])
+                assert rows[0]["track"] == self.track_days[0]["track"]
+                assert rows[0]["session_number"] == self.track_days[0]["sessions"][0]["session_number"]
+        finally:
+            os.remove(tmp_path)
+
+   def test_export_track_day_to_csv_invalid_index(self):
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmpfile:
+            tmp_path = tmpfile.name
+        try:
+            # Export with invalid index
+            result = self.mngr.export_track_day_to_csv(99, tmp_path)
+            assert result is False
+            # File should be empty or not written
+            with open(tmp_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                assert content == ""
+        finally:
+            os.remove(tmp_path)
+
+   def test_export_track_day_to_csv_no_sessions(self):
+    # Add a track day with no sessions
+    self.mngr.track_days.append({
+        "track": "Track3",
+        "date": "2024-06-15",
+        "organizer": "Org3",
+        "vehicle": "Car3",
+        "sessions": []
+    })
+    self.mngr.active_vehicle = "Car3"  # Ensure filtering includes the new track day
+    idx = 0  # It's the only one for Car3
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmpfile:
+        tmp_path = tmpfile.name
+    try:
+        result = self.mngr.export_track_day_to_csv(idx, tmp_path)
+        assert result is True
+        with open(tmp_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            rows = list(reader)
+            # Should have one row (track day info, empty session fields)
+            assert len(rows) == 1
+            assert rows[0]["track"] == "Track3"
+            assert rows[0]["session_number"] == ""
+    finally:
+        os.remove(tmp_path)
