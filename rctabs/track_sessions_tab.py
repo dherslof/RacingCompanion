@@ -1,5 +1,8 @@
+import os
 import customtkinter as ctk
+import tkinter.filedialog as fd
 from tkinter import StringVar
+from tkinter import messagebox
 from rcfunc.data_utils import save_data
 from rcfunc.track_session_mngr import TrackSessionMngr
 
@@ -285,12 +288,25 @@ class TrackSessionsPage(ctk.CTkFrame):
             add_button_frame,
             text="Modify Session",
             command=lambda: self.modify_session_form(track_day_idx, self.modify_session_var.get()),
-            fg_color="#3498DB",
-            hover_color="#2980B9",
+            fg_color="#6C7A89",
+            #fg_color="#3498DB",
+            #hover_color="#2980B9",
             width=150,
             height=32
         )
         modify_button.pack(side="left", padx=5)
+
+        export_button = ctk.CTkButton(
+            add_button_frame,
+            text="Export",
+            fg_color="#6C7A89",
+            #fg_color="#3498DB",
+            #hover_color="#2980B9",
+            width=170,
+            height=32,
+            command=lambda: self.open_export_track_day_form(track_day_idx)
+        )
+        export_button.pack(side="left", padx=5)
 
         add_session_button = ctk.CTkButton(add_button_frame, text="+ Add Session",
                                         width=150, height=32,
@@ -631,3 +647,34 @@ class TrackSessionsPage(ctk.CTkFrame):
             self.display_track_days()
         except ValueError:
             ctk.CTkLabel(self.new_window, text="Please add a vehicle before creating a track day.", text_color="red").pack()
+   
+    def open_export_track_day_form(self, track_day_idx):
+
+        # Set default export directory and filename
+        default_dir = os.path.join(os.path.expanduser("~"), ".local/racing-companion/exports")
+        track_day = self.track_session_mngr.get_track_day(track_day_idx)
+        default_filename = f"{track_day.get('track', 'track_day')}_{track_day.get('date', 'unknown_date')}.csv"
+
+        # Create file in order to pre-fill it in user dialog, otherwise it will not show up
+        os.makedirs(default_dir, exist_ok=True)
+
+        # Ask user for file path (pre-filled)
+        file_path = fd.asksaveasfilename(
+            initialdir=default_dir,
+            initialfile=default_filename,
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
+        )
+        if not file_path:
+            # Check if directory is empty, if empty remove it. Don't remove if it contains files.
+            if os.path.exists(default_dir) and not os.listdir(default_dir):
+                os.rmdir(default_dir)
+            return  # User cancelled
+
+        # Export using the manager
+        success = self.track_session_mngr.export_track_day_to_csv(track_day_idx, file_path)
+        if success:
+            messagebox.showinfo("Export Successful", f"Track day exported to:\n{file_path}")
+        else:
+            messagebox.showerror("Export Failed", "Failed to export track day to CSV.")
+            

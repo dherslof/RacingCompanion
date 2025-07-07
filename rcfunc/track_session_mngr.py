@@ -3,6 +3,11 @@
 # Description: Track session management functionality for the Racing Companion application.
 # License: TBD
 
+import csv
+import os
+
+csv_export_directory = os.path.join(os.path.expanduser("~"), ".local/racing-companion/exports")
+
 class TrackSessionMngr:
    """Business logic manager for track sessions and track days."""
 
@@ -130,3 +135,69 @@ class TrackSessionMngr:
       self.track_days = track_days
       self.vehicles = vehicles
       self.active_vehicle = active_vehicle
+
+   def export_track_day_to_csv(self, track_day_index, file_path = None):
+      """
+      Export a track day and all its sessions to a CSV file.
+
+      Args:
+         track_day_index (int): Index in the filtered track days list.
+         file_path (str): Path to the CSV file to write.
+
+      Returns:
+         bool: True if export was successful, False otherwise.
+      """
+      track_day = self.get_track_day(track_day_index)
+      if not track_day:
+         return False
+
+      if file_path is None:
+         return False
+
+      # Define CSV columns
+      fieldnames = [
+         "track", "date", "organizer", "vehicle",
+         "session_number", "laps", "weather", "tire_type",
+         "tire_status", "best_lap_time", "comments"
+      ]
+
+      try:
+         with open(file_path, mode="w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            sessions = track_day.get("sessions", [])
+            if not sessions:
+               # Write track day info with empty session fields
+               writer.writerow({
+                  "track": track_day.get("track", ""),
+                  "date": track_day.get("date", ""),
+                  "organizer": track_day.get("organizer", ""),
+                  "vehicle": track_day.get("vehicle", ""),
+                  "session_number": "",
+                  "laps": "",
+                  "weather": "",
+                  "tire_type": "",
+                  "tire_status": "",
+                  "best_lap_time": "",
+                  "comments": ""
+               })
+            else:
+               for session in sessions:
+                  row = {
+                     "track": track_day.get("track", ""),
+                     "date": track_day.get("date", ""),
+                     "organizer": track_day.get("organizer", ""),
+                     "vehicle": track_day.get("vehicle", ""),
+                     "session_number": session.get("session_number", ""),
+                     "laps": session.get("laps", ""),
+                     "weather": session.get("weather", ""),
+                     "tire_type": session.get("tire_type", ""),
+                     "tire_status": session.get("tire_status", ""),
+                     "best_lap_time": session.get("best_lap_time", ""),
+                     "comments": session.get("comments", "")
+                  }
+                  writer.writerow(row)
+         return True
+      except Exception as e:
+         # Optionally log the error
+         return False
