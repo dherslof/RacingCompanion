@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from rcfunc.maintenance_mngr import (
     MaintenanceMngr, MaintenanceEntry, MaintenanceFilter, MaintenanceStatistics
 )

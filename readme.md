@@ -87,3 +87,8 @@ PYTHONPATH=. pytest
 ## Support
 ### Data Storage
 The application uses `/home/$USER/racing-companion` as a storage directory, and data files will be stored under `/home/$USER/racing-companion/.rcstorage/`. Data files are currently stored in a plain **.json** file. It's simple to read and can be used by other tools. This will be updated in the future.
+
+### Linting
+[ruff](https://github.com/astral-sh/ruff?tab=readme-ov-file) is used as linting tool. It can be installed and executed locally by using the support script in `tools/linting/lint_prj.sh` which wraps a `ruff --preview` call in the source directories for the project.
+
+Of course the `ruff` call can be executed freely as needed. The script is only for general help.
