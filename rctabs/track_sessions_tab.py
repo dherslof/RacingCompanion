@@ -491,7 +491,7 @@ class TrackSessionsPage(ctk.CTkFrame):
                 text_color="#2C3E50"
             )
             vehicle_label.pack(fill="x", pady=(0, field_pady))
-            vehicle_value = track_day_vehicle
+
         else:
             ctk.CTkLabel(scrollable_frame, text="Vehicle:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
             vehicle_var = StringVar(value=self.track_session_mngr.vehicles[0])
@@ -509,7 +509,6 @@ class TrackSessionsPage(ctk.CTkFrame):
                 text_color="#2C3E50"
             )
             vehicle_dropdown.pack(fill="x", pady=(0, field_pady))
-            vehicle_value = vehicle_var
 
         ctk.CTkLabel(scrollable_frame, text="Weather:", anchor="w", font=("Arial", 12)).pack(fill="x", pady=(field_pady, 2))
         weather_var = StringVar(value=self.track_session_mngr.weather_options[0])

@@ -1,9 +1,9 @@
 import customtkinter as ctk
-from tkinter import StringVar, messagebox
+from tkinter import messagebox
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional
 
 # Import the business logic layer
 from rcfunc.maintenance_mngr import MaintenanceMngr, MaintenanceEntry, MaintenanceFilter
@@ -196,10 +196,10 @@ class MaintenancePage(ctk.CTkFrame):
       self.refresh_maintenance_entries()
 
    def add_new_maintenance_entry(self):
-      dialog = MaintenanceEntryDialog(self.app, self.maintenance_manager, self._on_entry_saved)
+      MaintenanceEntryDialog(self.app, self.maintenance_manager, self._on_entry_saved)
 
    def edit_maintenance_entry(self, entry: MaintenanceEntry):
-      dialog = MaintenanceEntryDialog(self.app, self.maintenance_manager, self._on_entry_saved, entry)
+      MaintenanceEntryDialog(self.app, self.maintenance_manager, self._on_entry_saved, entry)
 
    def delete_maintenance_entry(self, entry: MaintenanceEntry):
       if messagebox.askyesno("Confirm Delete", f"Delete maintenance entry '{entry.title}'?"):
@@ -386,7 +386,9 @@ class MaintenanceEntryDialog:
       try:
          self.dialog.grab_set()
          self.dialog.focus_set()
-      except:
+      except Exception as e:
+         # Todo: Write a proper error log, displayed in the GUI somewhere.
+         print(f"Error setting dialog focus: {e}")
          pass
 
    def _setup_form(self):

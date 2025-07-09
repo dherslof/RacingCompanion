@@ -199,5 +199,7 @@ class TrackSessionMngr:
                   writer.writerow(row)
          return True
       except Exception as e:
-         # Optionally log the error
+         # Todo: Write a proper error log, displayed in the GUI somewhere.
+         print(f"Error exporting track day to CSV: {e}")
+
          return False
