@@ -501,7 +501,7 @@ class MaintenanceEntryDialog:
       is_valid, errors = self.maintenance_manager.validate_entry_data(entry_data)
       if not is_valid:
          error_message = "Please fix the following errors:\n\n" + "\n".join(f"• {error}" for error in errors)
-         messagebox.showerror("Validation Error", error_message)
+         messagebox.showerror("Validation Error", error_message, parent=self.dialog)
          return
       try:
          if self.is_editing:
@@ -512,7 +512,7 @@ class MaintenanceEntryDialog:
             self.callback()
          self._close_dialog()
       except Exception as e:
-         messagebox.showerror("Error", f"Failed to save entry: {str(e)}")
+         messagebox.showerror("Error", f"Failed to save entry: {str(e)}", parent=self.dialog)
 
    def _cancel(self):
       self._close_dialog()
