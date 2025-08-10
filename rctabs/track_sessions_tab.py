@@ -57,6 +57,7 @@ class TrackSessionsPage(ctk.CTkFrame):
         # Reverse the order of track days to show the most recent first. New variable to not break original index.
         reversed_track_day_list = list(reversed(filtered_track_days))
         for idx, track_day in enumerate(reversed_track_day_list):
+            orig_idx = len(filtered_track_days) - 1 - idx  # Original index in the unfiltered list
             card = ctk.CTkFrame(self.session_frame, corner_radius=10, border_width=1)
             card.pack(fill="x", pady=5, padx=10)
 
@@ -81,20 +82,20 @@ class TrackSessionsPage(ctk.CTkFrame):
 
             delete_button = ctk.CTkButton(buttons_frame, text="Delete",
                                        width=80, height=32,
-                                       command=lambda i=idx: self.delete_track_day(i),
+                                       command=lambda i=orig_idx: self.delete_track_day(i),
                                        fg_color="#E74C3C",
                                        hover_color="#C0392B")
             delete_button.pack(side="left", padx=5)
 
             toggle_button = ctk.CTkButton(buttons_frame, text="View Sessions",
                                         width=120, height=32,
-                                        command=lambda i=idx, c=card: self.toggle_sessions_inline(i, c))
+                                        command=lambda i=orig_idx, c=card: self.toggle_sessions_inline(i, c))
             toggle_button.pack(side="left", padx=5)
 
             content_frame = ctk.CTkFrame(card, fg_color="transparent")
             content_frame.pack(fill="x", padx=10, pady=(0, 10), expand=False)
 
-            self.session_content_frames[idx] = {
+            self.session_content_frames[orig_idx] = {
                 "frame": content_frame,
                 "button": toggle_button,
                 "visible": False
