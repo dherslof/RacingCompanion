@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional
 
 # Import the business logic layer
 from rcfunc.maintenance_mngr import MaintenanceMngr, MaintenanceEntry, MaintenanceFilter
+import rcfunc.gui_utils as gui_utils
 
 class MaintenancePage(ctk.CTkFrame):
    """GUI layer for maintenance management"""
@@ -119,17 +120,8 @@ class MaintenancePage(ctk.CTkFrame):
          fg_color="transparent"
       )
       self.maintenance_entries_container.pack(fill="both", expand=True, padx=20, pady=20)
+      gui_utils.enable_mousewheel_scrolling(self.maintenance_entries_container)
       self.maintenance_stats_view_frame = ctk.CTkFrame(self, fg_color="transparent")
-      
-      def _on_mousewheel(event):
-        if event.num == 4 or event.delta > 0:
-            self.maintenance_entries_container._parent_canvas.yview_scroll(-1, "units")
-        elif event.num == 5 or event.delta < 0:
-            self.maintenance_entries_container._parent_canvas.yview_scroll(1, "units")
-
-      self.maintenance_entries_container._parent_canvas.bind_all("<MouseWheel>", _on_mousewheel)
-      self.maintenance_entries_container._parent_canvas.bind_all("<Button-4>", _on_mousewheel)
-      self.maintenance_entries_container._parent_canvas.bind_all("<Button-5>", _on_mousewheel)
 
    def _setup_statistics_view(self):
       self.stats_tabs = ctk.CTkTabview(self.maintenance_stats_view_frame)

@@ -28,7 +28,28 @@ jobs:
 
       - name: Test execution
         run: |
-          PYTHONPATH=. pytest
+          PYTHONPATH=. pytest --ignore=tests/gui_utils_test.py
+
+  GUI-unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          sudo ./install_dependencies.sh
+          pip3 install --upgrade Pillow customtkinter numpy matplotlib
+
+      - name: Run GUI unit tests
+        run: |
+          PYTHONPATH=. xvfb-run pytest tests/gui_utils_test.py
 
   User-Install-test:
     runs-on: ubuntu-latest
