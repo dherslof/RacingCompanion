@@ -1,6 +1,8 @@
 import os
 import customtkinter as ctk
 import tkinter.filedialog as fd
+import rcfunc.gui_utils as gui_utils
+
 from tkinter import StringVar
 from tkinter import messagebox
 from rcfunc.data_utils import save_data
@@ -25,8 +27,9 @@ class TrackSessionsPage(ctk.CTkFrame):
 
     def setup_track_sessions_page(self):
         """Track session logging with card-style design."""
-        self.session_frame = ctk.CTkFrame(self)
+        self.session_frame = ctk.CTkScrollableFrame(self)
         self.session_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        gui_utils.enable_mousewheel_scrolling(self.session_frame)
         self.display_track_days()
 
     def display_track_days(self):
