@@ -9,7 +9,6 @@ def enable_mousewheel_scrolling(scrollable_frame):
     canvas = scrollable_frame._parent_canvas  # internal canvas
 
     def _on_mousewheel(event):
-        print(f"Mouse wheel event detected: {event}")
         if event.delta:  # Windows & MacOS
             canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
         elif event.num == 4:  # Linux scroll up
@@ -18,13 +17,11 @@ def enable_mousewheel_scrolling(scrollable_frame):
             canvas.yview_scroll(1, "units")
 
     def _bind_mousewheel(event):
-        print(f"Binding mouse wheel events to {scrollable_frame}")
         canvas.bind_all("<MouseWheel>", _on_mousewheel)
         canvas.bind_all("<Button-4>", _on_mousewheel)
         canvas.bind_all("<Button-5>", _on_mousewheel)
 
     def _unbind_mousewheel(event):
-        print(f"Unbinding mouse wheel events from {scrollable_frame}")
         canvas.unbind_all("<MouseWheel>")
         canvas.unbind_all("<Button-4>")
         canvas.unbind_all("<Button-5>")
