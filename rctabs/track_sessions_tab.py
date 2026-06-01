@@ -7,6 +7,10 @@ from tkinter import StringVar
 from tkinter import messagebox
 from rcfunc.data_utils import save_data
 from rcfunc.track_session_mngr import TrackSessionMngr
+from rcfunc.track_day_report_mngr import TrackDayReportMngr
+
+# TODO: List of todos:
+# - Use GUI utils for scrolling instead
 
 class TrackSessionsPage(ctk.CTkFrame):
     def __init__(self, master, app):
@@ -14,7 +18,7 @@ class TrackSessionsPage(ctk.CTkFrame):
         self.app = app
         self.session_content_frames = {}
 
-        # Use TrackSessionMngr for all track day/session logic
+        # TrackSessionMngr for all track day/session logic
         self.track_session_mngr = TrackSessionMngr(
             track_days=self.app.track_days,
             vehicles=self.app.vehicles,
@@ -23,10 +27,45 @@ class TrackSessionsPage(ctk.CTkFrame):
             save_callback=save_data
         )
 
+        # TrackDayReportMngr for all track day report logic
+        self.track_day_report_mngr = TrackDayReportMngr(self.app.track_days, self.app.vehicles)
+
         self.setup_track_sessions_page()
 
     def setup_track_sessions_page(self):
         """Track session logging with card-style design."""
+
+        # Header frame
+        self.track_sessions_header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.track_sessions_header_frame.pack(fill="x", padx=20, pady=(20, 10))
+
+        # Title label (optional, similar to maintenance tab)
+        self.track_sessions_title_label = ctk.CTkLabel(
+           self.track_sessions_header_frame,
+           text="Track Days",
+           font=ctk.CTkFont(size=24, weight="bold")
+        )
+        self.track_sessions_title_label.pack(side="left")
+
+        # New session button
+        self.new_session_button = ctk.CTkButton(
+           self.track_sessions_header_frame,
+           text="+ Create New Track Day",
+           command=self.create_new_track_day,
+           text_color="white"
+        )
+        self.new_session_button.pack(side="right", padx=(10, 0))
+
+        self.report_button = ctk.CTkButton(
+           self.track_sessions_header_frame,
+           text="Report",
+           fg_color="#6C7A89",
+           hover_color="#34495E",
+           text_color="white",
+           command=self.open_track_day_report_dialog
+        )
+        self.report_button.pack(side="right", padx=(10, 0))
+
         self.session_frame = ctk.CTkScrollableFrame(self)
         self.session_frame.pack(fill="both", expand=True, padx=10, pady=10)
         gui_utils.enable_mousewheel_scrolling(self.session_frame)
@@ -52,9 +91,6 @@ class TrackSessionsPage(ctk.CTkFrame):
                 text_color="gray"
             )
             no_track_days_label.pack(pady=20)
-            new_session_button = ctk.CTkButton(self.session_frame, text="+ Create New Track Day",
-                                         command=self.create_new_track_day)
-            new_session_button.pack(pady=10)
             return
 
         # Reverse the order of track days to show the most recent first. New variable to not break original index.
@@ -104,10 +140,6 @@ class TrackSessionsPage(ctk.CTkFrame):
                 "visible": False
             }
             content_frame.pack_forget()
-
-        new_session_button = ctk.CTkButton(self.session_frame, text="+ Create New Track Day",
-                                         command=self.create_new_track_day)
-        new_session_button.pack(pady=10)
 
     def delete_track_day(self, filtered_idx):
         """Delete a track day with confirmation."""
@@ -293,8 +325,6 @@ class TrackSessionsPage(ctk.CTkFrame):
             text="Modify Session",
             command=lambda: self.modify_session_form(track_day_idx, self.modify_session_var.get()),
             fg_color="#6C7A89",
-            #fg_color="#3498DB",
-            #hover_color="#2980B9",
             width=150,
             height=32
         )
@@ -304,8 +334,6 @@ class TrackSessionsPage(ctk.CTkFrame):
             add_button_frame,
             text="Export",
             fg_color="#6C7A89",
-            #fg_color="#3498DB",
-            #hover_color="#2980B9",
             width=170,
             height=32,
             command=lambda: self.open_export_track_day_form(track_day_idx)
@@ -453,7 +481,7 @@ class TrackSessionsPage(ctk.CTkFrame):
 
         scrollable_frame = ctk.CTkScrollableFrame(self.session_form_window)
         scrollable_frame.pack(fill="both", expand=True, padx=0, pady=0)
-
+       # TODO: Use GUI utils for scrolling instead
         def _on_mousewheel(event):
             if event.num == 4 or event.delta > 0:
                 scrollable_frame._parent_canvas.yview_scroll(-1, "units")
@@ -680,4 +708,291 @@ class TrackSessionsPage(ctk.CTkFrame):
             messagebox.showinfo("Export Successful", f"Track day exported to:\n{file_path}")
         else:
             messagebox.showerror("Export Failed", "Failed to export track day to CSV.")
-            
+
+    def open_track_day_report_dialog(self):
+      dialog = ctk.CTkToplevel(self)
+      dialog.title("Track Day Report")
+      dialog.geometry("400x420")
+      dialog.transient(self)
+      dialog.update_idletasks()
+      dialog.grab_set()
+
+      field_pady = 10
+
+      # Report Type
+      report_types = ["summary", "extensive", "specific"]
+      report_type_var = StringVar(value="")
+      ctk.CTkLabel(
+         dialog,
+         text="Report Type:",
+         anchor="w",
+         font=("Arial", 12, "bold")
+      ).pack(fill="x", padx=20, pady=(10, 2))
+
+      report_type_menu = ctk.CTkOptionMenu(
+         dialog,
+         values=report_types,
+         variable=report_type_var,
+         width=350,
+         fg_color="#F5F7FA",
+         button_color="#D0D3D4",
+         button_hover_color="#B3B6B7",
+         dropdown_fg_color="#F5F7FA",
+         text_color="#2C3E50"
+      )
+      report_type_menu.pack(fill="x", padx=20, pady=(field_pady, field_pady))
+
+      # Container for dynamic form (change form design between specific and the rest)
+      form_frame = ctk.CTkFrame(dialog, fg_color="transparent", corner_radius=10)
+      form_frame.pack(fill="both", expand=True, padx=20, pady=0)
+
+      # Variables for other fields
+      vehicle_var = StringVar(value="")
+      year_var = StringVar(value="")
+      track_var = StringVar(value="")
+      specific_track_day_var = StringVar(value="")
+
+      def build_report_form(*_):
+         # Remove old traces
+         if hasattr(form_frame, "trace_ids"):
+            for var, trace_id in form_frame.trace_ids:
+                  var.trace_remove("write", trace_id)
+            form_frame.trace_ids = []
+         
+         # Clear previous widgets
+         for widget in form_frame.winfo_children():
+               widget.destroy()
+
+         if report_type_var.get() == "specific":
+               # Show only track day dropdown
+               ctk.CTkLabel(form_frame, text="Select Track Day:", anchor="w", font=("Arial", 12, "bold")).pack(fill="x", pady=(field_pady, 2))
+               # Build list of all track days (Same list as displayed)
+               track_days = self.app.track_days
+               track_day_options = [f"{td.get('track', 'N/A')} - {td.get('date', 'N/A')}" for td in track_days]
+               specific_track_day_var.set("")
+               specific_track_day_menu = ctk.CTkOptionMenu(
+                  form_frame,
+                  values=[""] + track_day_options,
+                  variable=specific_track_day_var,
+                  width=350,
+                  fg_color="#F5F7FA",
+                  button_color="#D0D3D4",
+                  button_hover_color="#B3B6B7",
+                  dropdown_fg_color="#F5F7FA",
+                  text_color="#2C3E50"
+               )
+               specific_track_day_menu.pack(fill="x", pady=(0, field_pady))
+         else:
+               # Regular fields (vehicle, year, track, etc.)
+               # ... your previous code for vehicle, year, track dropdowns ...
+               # Use the same logic as before, but pack into form_frame
+
+               # Vehicle
+               ctk.CTkLabel(form_frame, text="Vehicle:", anchor="w", font=("Arial", 12, "bold")).pack(fill="x", pady=(field_pady, 2))
+               vehicle_list = self.app.vehicles if self.app.vehicles else ["No Vehicles Available"]
+               active_vehicle = self.app.active_vehicle if self.app.active_vehicle in vehicle_list else ""
+               # Only prefill if not already set (so user selection is preserved on rebuild)
+               if not vehicle_var.get():
+                  vehicle_var.set(active_vehicle)
+               vehicle_menu = ctk.CTkOptionMenu(
+                  form_frame,
+                  values=[""] + vehicle_list,
+                  variable=vehicle_var,
+                  width=350,
+                  fg_color="#F5F7FA",
+                  button_color="#D0D3D4",
+                  button_hover_color="#B3B6B7",
+                  dropdown_fg_color="#F5F7FA",
+                  text_color="#2C3E50"
+               )
+               vehicle_menu.pack(fill="x", pady=(0, field_pady))
+
+               ctk.CTkLabel(form_frame, text="Year:", anchor="w", font=("Arial", 12, "bold")).pack(fill="x", pady=(field_pady, 2))
+               years = self.track_day_report_mngr.get_available_years(vehicle=vehicle_var.get())
+               year_menu = ctk.CTkOptionMenu(
+                  form_frame,
+                  values=[""] + years if years else [""],
+                  variable=year_var,
+                  width=350,
+                  fg_color="#F5F7FA",
+                  button_color="#D0D3D4",
+                  button_hover_color="#B3B6B7",
+                  dropdown_fg_color="#F5F7FA",
+                  text_color="#2C3E50"
+               )
+               year_menu.pack(fill="x", pady=(0, field_pady))
+
+               if report_type_var.get() != "summary":
+                  year_menu.configure(state="disabled")
+               else:
+                  year_menu.configure(state="normal")
+
+               ctk.CTkLabel(form_frame, text="Track:", anchor="w", font=("Arial", 12, "bold")).pack(fill="x", pady=(field_pady, 2))
+               tracks = self.track_day_report_mngr.get_available_tracks(vehicle=vehicle_var.get(), year=year_var.get())
+               track_menu = ctk.CTkOptionMenu(
+                  form_frame,
+                  values=[""] + tracks if tracks else [""],
+                  variable=track_var,
+                  width=350,
+                  fg_color="#F5F7FA",
+                  button_color="#D0D3D4",
+                  button_hover_color="#B3B6B7",
+                  dropdown_fg_color="#F5F7FA",
+                  text_color="#2C3E50"
+               )
+               track_menu.pack(fill="x", pady=(0, field_pady))
+
+               if report_type_var.get() == "summary":
+                  track_menu.configure(state="normal")
+               else:
+                  track_menu.configure(state="disabled")
+
+               def update_year_menu(*_):
+                  years = self.track_day_report_mngr.get_available_years(vehicle=vehicle_var.get())
+                  year_menu.configure(values=[""] + years if years else [""])
+                  # Only clear if current selection is not valid
+                  if year_var.get() not in years:
+                     year_var.set("")
+                  # Enable only for summary
+                  if report_type_var.get() == "summary":
+                     year_menu.configure(state="normal")
+                  else:
+                     year_menu.configure(state="disabled")
+
+               def update_track_menu(*_):
+                  tracks = self.track_day_report_mngr.get_available_tracks(vehicle=vehicle_var.get(), year=year_var.get())
+                  track_menu.configure(values=[""] + tracks if tracks else [""])
+                  if track_var.get() not in tracks:
+                     track_var.set("")
+                  # Enable only for summary
+                  if report_type_var.get() == "summary":
+                     track_menu.configure(state="normal")
+                  else:
+                     track_menu.configure(state="disabled")
+
+               trace_ids = []
+
+               trace_ids.append(vehicle_var.trace_add("write", update_year_menu))
+               trace_ids.append(vehicle_var.trace_add("write", update_track_menu))
+               trace_ids.append(year_var.trace_add("write", update_track_menu))
+               trace_ids.append(report_type_var.trace_add("write", update_year_menu))
+
+               form_frame.trace_ids = [
+                     (vehicle_var, trace_ids[0]),
+                  (vehicle_var, trace_ids[1]),
+                  (year_var, trace_ids[2]),
+                  (report_type_var, trace_ids[3])
+               ]
+
+               # Initial update
+               update_year_menu()
+               update_track_menu()
+
+         # Generate report
+         def run_report():
+               if report_type_var.get() == "specific":
+                  selected = specific_track_day_var.get()
+                  # Find the track day object
+                  track_days = self.app.track_days
+                  td = next((td for td in track_days if f"{td.get('track', 'N/A')} - {td.get('date', 'N/A')}" == selected), None)
+                  result = self.track_day_report_mngr.generate_report("specific", track_day=td)
+               else:
+                  report_type = report_type_var.get()
+                  if not report_type:
+                      # Make sure the error dialog appears above the dialog window
+                      messagebox.showerror(
+                        "Failure",
+                        "No 'Report Type' selected. Please select a report type before generating a report.",
+                        parent=dialog
+                      )
+                      return
+
+                  vehicle = vehicle_var.get()
+                  year = year_var.get() if report_type == "summary" else None
+                  track = track_var.get()
+                  result = self.track_day_report_mngr.generate_report(report_type, vehicle, year, track=track)
+
+               self.show_report_window(result)
+
+         run_btn = ctk.CTkButton(
+               form_frame,
+               text="Generate Report",
+               command=run_report,
+               fg_color="#2ECC71",
+               hover_color="#27AE60",
+               text_color="white",
+               width=150,
+               height=40
+         )
+         run_btn.pack(side="top", pady=10, anchor="center")
+
+      # Rebuild form when report type changes
+      report_type_var.trace_add("write", build_report_form)
+      build_report_form()
+
+    def show_report_window(self, report_text, title="Track Day Report Result"):
+      report_win = ctk.CTkToplevel(self)
+      report_win.title(title)
+      report_win.geometry("700x600")  # Bigger window
+
+      report_win.transient(self)
+      report_win.lift()
+      report_win.update_idletasks()
+      report_win.grab_set()
+
+      # Header
+      header_frame = ctk.CTkFrame(report_win, fg_color="transparent")
+      header_frame.pack(fill="x", pady=(10, 0))
+
+      export_btn = ctk.CTkButton(header_frame, text="Export", fg_color="#6C7A89", width=100, height=28, command=lambda: self.export_report(report_text, parent=report_win))
+      export_btn.pack(side="right", padx=20, pady=4)
+
+      # Scrollable report area
+      scroll_frame = ctk.CTkScrollableFrame(report_win, fg_color="#F5F7FA")
+      scroll_frame.pack(fill="both", expand=True, padx=20, pady=10)
+      def _on_mousewheel(event):
+         if event.num == 4 or event.delta > 0:
+            scroll_frame._parent_canvas.yview_scroll(-1, "units")
+         elif event.num == 5 or event.delta < 0:
+            scroll_frame._parent_canvas.yview_scroll(1, "units")
+
+      scroll_frame._parent_canvas.bind_all("<MouseWheel>", _on_mousewheel)
+      scroll_frame._parent_canvas.bind_all("<Button-4>", _on_mousewheel)
+      scroll_frame._parent_canvas.bind_all("<Button-5>", _on_mousewheel)
+
+      # Display report text with some formatting
+      for line in report_text.split("\n"):
+    # Detect track day header (e.g., lines starting with "- TrackName on Date")
+         if line.startswith("- "):
+            # Track day header: bold, colored, extra top margin
+            ctk.CTkLabel(
+                  scroll_frame,
+                  text=line,
+                  font=("Arial", 13, "bold"),
+                  text_color="#1F6AA5",
+                  fg_color="#EBEEF2"
+            ).pack(anchor="w", pady=(18, 4), fill="x")
+         elif line.strip() == "":
+            ctk.CTkLabel(scroll_frame, text="", fg_color="#F5F7FA").pack()
+         elif line.startswith("Vehicle:") or line.startswith("Summary") or line.startswith("Extensive") or line.startswith("Specific"):
+            ctk.CTkLabel(scroll_frame, text=line, font=("Arial", 14, "bold"), text_color="#34495E", fg_color="#F5F7FA").pack(anchor="w", pady=(8,2))
+         elif ":" in line:
+            field, value = line.split(":", 1)
+            field_frame = ctk.CTkFrame(scroll_frame, fg_color="#F5F7FA")
+            field_frame.pack(anchor="w", padx=20, pady=2, fill="x")
+            ctk.CTkLabel(field_frame, text=f"{field}: ", font=("Arial", 12, "bold"), text_color="#070707", fg_color="#F5F7FA").pack(side="left")
+            ctk.CTkLabel(field_frame, text=value.strip(), font=("Arial", 12), text_color="#070707", fg_color="#F5F7FA").pack(side="left")
+         else:
+            ctk.CTkLabel(scroll_frame, text=line, font=("Arial", 12), text_color="#070707", fg_color="#F5F7FA").pack(anchor="w", padx=40)
+
+    def export_report(self, report_text, parent=None):
+      # TODO: Update this to a csv file and text
+      file_path = fd.asksaveasfilename(
+         defaultextension=".txt",
+         filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+         parent=parent
+      )
+      if file_path:
+         with open(file_path, "w") as f:
+               f.write(report_text)
+         messagebox.showinfo("Export Successful", f"Report exported to:\n{file_path}")

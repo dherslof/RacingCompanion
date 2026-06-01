@@ -110,7 +110,7 @@ jobs:
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: Install dependencies
-        run: uv tool install ruff@latest
+        run: uv tool install ruff==0.12.2 # Change to latest version when program is stable enough and quality should be pinned.
 
       - name: Run ruff checks
         run: |
@@ -119,9 +119,9 @@ jobs:
 
           EXIT_CODE=0
 
-          ruff check rctabs --preview || EXIT_CODE=$?
-          ruff check rcfunc --preview || EXIT_CODE=$?
-          ruff check tests  --preview || EXIT_CODE=$?
+          ruff check rctabs || EXIT_CODE=$?
+          ruff check rcfunc || EXIT_CODE=$?
+          ruff check tests || EXIT_CODE=$?
 
           if [ $EXIT_CODE -ne 0 ]; then
             echo "One or more Ruff checks failed."
