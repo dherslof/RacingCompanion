@@ -1,13 +1,17 @@
 import os
 import customtkinter as ctk
 import tkinter.filedialog as fd
+import matplotlib.pyplot as plt
+import numpy as np
 import rcfunc.gui_utils as gui_utils
 
 from tkinter import StringVar
 from tkinter import messagebox
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from rcfunc.data_utils import save_data
 from rcfunc.track_session_mngr import TrackSessionMngr
 from rcfunc.track_day_report_mngr import TrackDayReportMngr
+from rcfunc.track_day_stats_mngr import TrackDayStatsMngr
 
 # TODO: List of todos:
 # - Use GUI utils for scrolling instead
@@ -30,6 +34,14 @@ class TrackSessionsPage(ctk.CTkFrame):
         # TrackDayReportMngr for all track day report logic
         self.track_day_report_mngr = TrackDayReportMngr(self.app.track_days, self.app.vehicles)
 
+        # TrackDayStatsMngr for all track day statistics and analytics
+        self.track_day_stats_mngr = TrackDayStatsMngr(
+            track_days=self.app.track_days,
+            vehicles=self.app.vehicles,
+            active_vehicle=self.app.active_vehicle
+        )
+
+        self.current_view = "list"
         self.setup_track_sessions_page()
 
     def setup_track_sessions_page(self):
@@ -46,6 +58,15 @@ class TrackSessionsPage(ctk.CTkFrame):
            font=ctk.CTkFont(size=24, weight="bold")
         )
         self.track_sessions_title_label.pack(side="left")
+
+        # View selector: List View / Statistics
+        self.track_view_selector = ctk.CTkSegmentedButton(
+           self.track_sessions_header_frame,
+           values=["List View", "Statistics"],
+           command=self.switch_track_view
+        )
+        self.track_view_selector.pack(side="left", padx=(20, 0))
+        self.track_view_selector.set("List View")
 
         # New session button
         self.new_session_button = ctk.CTkButton(
@@ -66,18 +87,182 @@ class TrackSessionsPage(ctk.CTkFrame):
         )
         self.report_button.pack(side="right", padx=(10, 0))
 
+        # List view frame
         self.session_frame = ctk.CTkScrollableFrame(self)
         self.session_frame.pack(fill="both", expand=True, padx=10, pady=10)
         gui_utils.enable_mousewheel_scrolling(self.session_frame)
+
+        # Statistics view frame
+        self.stats_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self._create_stats_view()
+
         self.display_track_days()
+
+    def _create_stats_view(self):
+        """Create the statistics view with tabs and charts."""
+        self.stats_tabs = ctk.CTkTabview(self.stats_frame)
+        self.stats_tabs.pack(fill="both", expand=True, padx=20, pady=20)
+        self.stats_tabs.add("Track Frequency")
+        self.stats_tabs.add("Performance Metrics")
+        self.stats_tabs.add("Vehicle Activity")
+        self.stats_tabs.add("Weather Distribution")
+
+        # Track Frequency chart
+        freq_frame = ctk.CTkFrame(self.stats_tabs.tab("Track Frequency"), fg_color="transparent")
+        freq_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        self.freq_fig, self.freq_ax = plt.subplots(figsize=(10, 6))
+        self.freq_canvas = FigureCanvasTkAgg(self.freq_fig, master=freq_frame)
+        self.freq_canvas.get_tk_widget().pack(fill="both", expand=True)
+
+        # Performance Metrics chart
+        perf_frame = ctk.CTkFrame(self.stats_tabs.tab("Performance Metrics"), fg_color="transparent")
+        perf_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        self.perf_fig, self.perf_ax = plt.subplots(figsize=(10, 6))
+        self.perf_canvas = FigureCanvasTkAgg(self.perf_fig, master=perf_frame)
+        self.perf_canvas.get_tk_widget().pack(fill="both", expand=True)
+
+        # Vehicle Activity chart
+        veh_frame = ctk.CTkFrame(self.stats_tabs.tab("Vehicle Activity"), fg_color="transparent")
+        veh_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        self.veh_fig, self.veh_ax = plt.subplots(figsize=(10, 6))
+        self.veh_canvas = FigureCanvasTkAgg(self.veh_fig, master=veh_frame)
+        self.veh_canvas.get_tk_widget().pack(fill="both", expand=True)
+
+        # Weather Distribution chart
+        weather_frame = ctk.CTkFrame(self.stats_tabs.tab("Weather Distribution"), fg_color="transparent")
+        weather_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        self.weather_fig, self.weather_ax = plt.subplots(figsize=(10, 6))
+        self.weather_canvas = FigureCanvasTkAgg(self.weather_fig, master=weather_frame)
+        self.weather_canvas.get_tk_widget().pack(fill="both", expand=True)
+
+    def switch_track_view(self, view):
+        """Switch between list view and statistics view."""
+        self.current_view = view.lower().replace(" ", "_")
+        if self.current_view == "list_view":
+            self.stats_frame.pack_forget()
+            self.session_frame.pack(fill="both", expand=True, padx=10, pady=10)
+            self.display_track_days()
+        else:
+            self.session_frame.pack_forget()
+            self.stats_frame.pack(fill="both", expand=True)
+            self.update_track_statistics()
+
+    def update_track_statistics(self):
+        """Update all track statistics charts."""
+        self._update_track_frequency_chart()
+        self._update_performance_metrics_chart()
+        self._update_vehicle_activity_chart()
+        self._update_weather_distribution_chart()
+
+    def _update_track_frequency_chart(self):
+        """Update the track frequency chart."""
+        self.freq_ax.clear()
+        chart_data = self.track_day_stats_mngr.get_chart_data(
+            "track_frequency",
+            vehicle=self.app.active_vehicle
+        )
+        if chart_data.get("labels"):
+            self.freq_ax.bar(chart_data["labels"], chart_data["values"], color="#3498DB")
+            self.freq_ax.set_title(chart_data["title"], fontsize=14, fontweight="bold")
+            self.freq_ax.set_xlabel(chart_data["xlabel"])
+            self.freq_ax.set_ylabel(chart_data["ylabel"])
+            self.freq_ax.tick_params(axis="x", rotation=45)
+        self.freq_fig.tight_layout()
+        self.freq_canvas.draw()
+
+    def _update_performance_metrics_chart(self):
+        """Update the performance metrics chart."""
+        self.perf_ax.clear()
+        chart_data = self.track_day_stats_mngr.get_chart_data(
+            "performance_metrics",
+            vehicle=self.app.active_vehicle
+        )
+        if chart_data.get("labels"):
+            x = np.arange(len(chart_data["labels"]))
+            width = 0.35
+            self.perf_ax.bar(
+                x - width / 2,
+                chart_data["avg_laps"],
+                width,
+                label="Avg Laps",
+                color="#2ECC71"
+            )
+            self.perf_ax.bar(
+                x + width / 2,
+                chart_data["avg_sessions"],
+                width,
+                label="Avg Sessions",
+                color="#E74C3C"
+            )
+            self.perf_ax.set_title(chart_data["title"], fontsize=14, fontweight="bold")
+            self.perf_ax.set_xticks(x)
+            self.perf_ax.set_xticklabels(chart_data["labels"])
+            self.perf_ax.set_ylabel(chart_data["ylabel"])
+            self.perf_ax.legend()
+        self.perf_fig.tight_layout()
+        self.perf_canvas.draw()
+
+    def _update_vehicle_activity_chart(self):
+        """Update the vehicle activity chart."""
+        self.veh_ax.clear()
+        chart_data = self.track_day_stats_mngr.get_chart_data(
+            "vehicle_activity",
+            vehicle=self.app.active_vehicle
+        )
+        if chart_data.get("vehicle_names"):
+            x = np.arange(len(chart_data["vehicle_names"]))
+            width = 0.35
+            self.veh_ax.bar(
+                x - width / 2,
+                chart_data["days_count"],
+                width,
+                label="Track Days",
+                color="#9B59B6"
+            )
+            self.veh_ax.bar(
+                x + width / 2,
+                chart_data["sessions_count"],
+                width,
+                label="Sessions",
+                color="#F39C12"
+            )
+            self.veh_ax.set_title(chart_data["title"], fontsize=14, fontweight="bold")
+            self.veh_ax.set_xticks(x)
+            self.veh_ax.set_xticklabels(chart_data["vehicle_names"])
+            self.veh_ax.set_ylabel("Count")
+            self.veh_ax.legend()
+        self.veh_fig.tight_layout()
+        self.veh_canvas.draw()
+
+    def _update_weather_distribution_chart(self):
+        """Update the weather distribution pie chart."""
+        self.weather_ax.clear()
+        chart_data = self.track_day_stats_mngr.get_chart_data(
+            "weather_distribution",
+            vehicle=self.app.active_vehicle
+        )
+        if chart_data.get("labels"):
+            self.weather_ax.pie(
+                chart_data["values"],
+                labels=chart_data["labels"],
+                autopct="%1.1f%%",
+                startangle=90,
+                colors=plt.cm.Set3.colors
+            )
+            self.weather_ax.set_title(chart_data["title"], fontsize=14, fontweight="bold")
+        self.weather_fig.tight_layout()
+        self.weather_canvas.draw()
 
     def display_track_days(self):
         """Display stored track days as expandable cards."""
         for widget in self.session_frame.winfo_children():
             widget.destroy()
 
-        # Always use up-to-date data from app and update manager
+        # Always use up-to-date data from app and update managers
         self.track_session_mngr.update_data_references(
+            self.app.track_days, self.app.vehicles, self.app.active_vehicle
+        )
+        self.track_day_stats_mngr.update_data_references(
             self.app.track_days, self.app.vehicles, self.app.active_vehicle
         )
 

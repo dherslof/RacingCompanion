@@ -20,7 +20,7 @@ class RacingDiaryApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Racing Companion")
-        self.geometry("850x750")
+        self.geometry("1100x850")
         self.is_closing = False
 
         self.app_version = "1.0.0"
