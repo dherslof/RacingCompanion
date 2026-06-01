@@ -84,6 +84,13 @@ Run test from repo root:
 PYTHONPATH=. pytest
 ```
 
+### Code Coverage Report
+The code coverage report can be generated when running the unit tests
+```bash
+PYTHONPATH=. pytest --cov=rcfunc --cov=rctabs --cov-html=htmlcov
+```
+
+
 ## Support
 ### Data Storage
 The application uses `/home/$USER/racing-companion` as a storage directory, and data files will be stored under `/home/$USER/racing-companion/.rcstorage/`. Data files are currently stored in a plain **.json** file. It's simple to read and can be used by other tools. This will be updated in the future.
